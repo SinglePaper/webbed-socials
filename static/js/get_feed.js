@@ -4,7 +4,8 @@ let targetUrls = [
     "https://singlepaper.github.io/dropout-rss/feeds/feed-very-important-people.xml",
     "https://singlepaper.github.io/dropout-rss/feeds/feed-make-some-noise.xml",
     "https://rss.nebula.app/video/channels/jetlag.rss",
-    "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA"
+    "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
+    "https://bsky.app/profile/did:plc:hbizd4k2uhfdtph5dwtfai2v/rss"
 ]
 
 
@@ -69,7 +70,7 @@ function getBaseUrl(url) {
 }
 
 
-function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail) {
+function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail.svg") {
     const feedItem = document.createElement('div');
     feedItem.classList.add('col');
     feedItem.classList.add('mx-auto');
@@ -80,7 +81,7 @@ function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail) {
                 <img src="${thumbnail}">
                 <div class="card-body">
                     <h5 class="card-title">${title}</h5>
-                    <p class="card-text">${feedTitle} • ${timeSince(pubDate)}</p>
+                    <p class="card-text">${feedTitle} • ${timeSince(pubDate)} ago</p>
                 </div>
             </div>
         </a>
@@ -88,7 +89,7 @@ function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail) {
     return feedItem
 }
 
-function handleYouTube(xmlDoc, proxyUrl) {
+function handleYouTube(xmlDoc) {
     const feedTitle = xmlDoc.querySelector("author").querySelector("name").textContent
     
     const items = xmlDoc.querySelectorAll("entry");
@@ -106,6 +107,25 @@ function handleYouTube(xmlDoc, proxyUrl) {
         const feedItem = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
         feedItems.push([pubDate, feedItem]);
         
+    });
+    return feedItems
+}
+
+function handleBluesky(xmlDoc) {
+    const feedTitle = xmlDoc.querySelector("title").textContent
+    
+    const items = xmlDoc.querySelectorAll("item");
+    let feedItems = [];
+
+    items.forEach(item => {
+        const link = item.querySelector("link").textContent;
+        const description = item.querySelector("description").textContent;
+        const postPreview = description.split(" ").slice(0,7).join(" ") + "..."
+        const guid = item.querySelector("guid").textContent;
+        const pubDate = new Date(item.querySelector("pubDate").textContent);
+        const feedIcon = "../images/favicon_bsky.png"
+        const feedItem = createFeedItem(postPreview,feedTitle,link,guid,pubDate,feedIcon);
+        feedItems.push([pubDate, feedItem]);
     });
     return feedItems
 }
@@ -134,7 +154,11 @@ async function fetchRSS(targetUrl) {
 
         // YouTube is weird, so we'll handle it in a separate function.
         if (targetUrl.includes("youtube.com/feeds")) {
-            return handleYouTube(xmlDoc, `${protocol}//${host}/rss-proxy?url=`)
+            return handleYouTube(xmlDoc)
+        }
+        // Bluesky is weird, so we'll handle it in a separate function.
+        if (targetUrl.includes("bsky.app")) {
+            return handleBluesky(xmlDoc)
         }
 
         const feedTitle = xmlDoc.querySelector("channel").querySelector("title").textContent
