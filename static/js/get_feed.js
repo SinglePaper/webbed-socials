@@ -76,7 +76,7 @@ function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail="..
     feedItem.classList.add('mx-auto');
     feedItem.innerHTML = `
         <a href="${link}" target="_blank" label="${guid}">
-            <div class="card" style="width: 18rem;">
+            <div class="card mx-auto" style="width: 18rem;">
                 <img class="card-img-overlay w-auto p-2" src="${feedIcon}">
                 <img src="${thumbnail}">
                 <div class="card-body">
