@@ -97,7 +97,7 @@ function handleYouTube(xmlDoc) {
 
     items.forEach(item => {
         const title = item.querySelector("title").textContent;
-        const link = item.querySelector("link").textContent;
+        const link = item.querySelector("link").attributes.href.value;
         const description = item.querySelector("description").textContent;
         const guid = item.querySelector("id").textContent;
         const pubDate = new Date(item.querySelector("published").textContent);
@@ -195,7 +195,7 @@ async function fetchRSS(targetUrl) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', async function () {
+async function loadFeeds() {
     all_feed_items = []
     for (let i in targetUrls) {
         let targetUrl = targetUrls[i]
@@ -209,4 +209,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         let feed_item = all_feed_items[i][1]
         feedContainer.appendChild(feed_item);
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', loadFeeds);
