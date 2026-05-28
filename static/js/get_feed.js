@@ -3,9 +3,9 @@ let targetUrls = [
     "https://singlepaper.github.io/dropout-rss/feeds/feed-game-changer.xml",
     "https://singlepaper.github.io/dropout-rss/feeds/feed-very-important-people.xml",
     "https://singlepaper.github.io/dropout-rss/feeds/feed-make-some-noise.xml",
-    "https://rss.nebula.app/video/channels/jetlag.rss",
-    "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
-    "https://bsky.app/profile/did:plc:hbizd4k2uhfdtph5dwtfai2v/rss"
+    // "https://rss.nebula.app/video/channels/jetlag.rss",
+    // "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
+    // "https://bsky.app/profile/did:plc:hbizd4k2uhfdtph5dwtfai2v/rss"
 ]
 
 
@@ -70,22 +70,41 @@ function getBaseUrl(url) {
 }
 
 
-function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail.svg") {
+function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail.svg", mobile=false) {
     const feedItem = document.createElement('div');
-    feedItem.classList.add('col');
+
+    feedItem.classList.add(mobile?'row':'col');
     feedItem.classList.add('mx-auto');
+
+    let DESKTOP_CARD = `
+        <div class="card mx-auto" style="width: 18rem;">
+            <img class="card-img-overlay w-auto p-2" src="${feedIcon}">
+            <img src="${thumbnail}">
+            <div class="card-body">
+                <h5 class="card-title">${title}</h5>
+                <p class="card-text"><small class="text-body-secondary">${feedTitle} • ${timeSince(pubDate)} ago</small></p>
+            </div>
+        </div>
+    `
+
+    let PHONE_CARD = `
+    <div class="row mb-5 text-center">
+      ${title}
+    </div>
+    `
+
     feedItem.innerHTML = `
         <a href="${link}" target="_blank" label="${guid}">
-            <div class="card mx-auto" style="width: 18rem;">
-                <img class="card-img-overlay w-auto p-2" src="${feedIcon}">
-                <img src="${thumbnail}">
-                <div class="card-body">
-                    <h5 class="card-title">${title}</h5>
-                    <p class="card-text">${feedTitle} • ${timeSince(pubDate)} ago</p>
-                </div>
-            </div>
+        <div>
+          <div class="d-none d-md-block">
+            ${DESKTOP_CARD}
+          </div>
+          <div class="d-block d-md-none">
+            ${PHONE_CARD}
+          </div>
+        </div>
         </a>
-    `;
+    `
     return feedItem
 }
 
@@ -104,8 +123,9 @@ function handleYouTube(xmlDoc) {
         const hosturl = new URL(item.querySelector("link").attributes.href.value)
         const feedIcon = "../images/favicon_yt.png"
         const thumbnail = item.querySelector("thumbnail").attributes.url.value.replace("hqdefault", "hq720")
-        const feedItem = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
-        feedItems.push([pubDate, feedItem]);
+        const feedItemDesktop = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
+        const feedItemMobile = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail, mobile=true);
+        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
         
     });
     return feedItems
@@ -124,8 +144,9 @@ function handleBluesky(xmlDoc) {
         const guid = item.querySelector("guid").textContent;
         const pubDate = new Date(item.querySelector("pubDate").textContent);
         const feedIcon = "../images/favicon_bsky.png"
-        const feedItem = createFeedItem(postPreview,feedTitle,link,guid,pubDate,feedIcon);
-        feedItems.push([pubDate, feedItem]);
+        const feedItemDesktop = createFeedItem(postPreview,feedTitle,link,guid,pubDate,feedIcon);
+        const feedItemMobile = createFeedItem(postPreview,feedTitle,link,guid,pubDate,feedIcon);
+        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
     });
     return feedItems
 }
@@ -185,8 +206,10 @@ async function fetchRSS(targetUrl) {
             if (img && img.src) {
                 thumbnail = img.src
             }
-            const feedItem = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
-            feedItems.push([pubDate, feedItem]);
+            const feedItemDesktop = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
+            const feedItemMobile = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail,mobile=true);
+
+            feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
             
         });
         return feedItems
@@ -202,12 +225,16 @@ async function loadFeeds() {
         all_feed_items = all_feed_items.concat(await fetchRSS(targetUrl))
     }
     all_feed_items.sort(function(a,b){return b[0]-a[0]})
-    const feedContainer = document.getElementById('feed-container');
-    feedContainer.innerHTML = '';
+    const feedContainerDesktop = document.getElementById('feed-container-desktop');
+    const feedContainerMobile = document.getElementById('feed-container-mobile');
+    feedContainerDesktop.innerHTML = '';
+    feedContainerMobile.innerHTML = '';
 
     for (let i in all_feed_items) {
         let feed_item = all_feed_items[i][1]
-        feedContainer.appendChild(feed_item);
+        feedContainerDesktop.appendChild(feed_item);
+        feed_item = all_feed_items[i][2]
+        feedContainerMobile.appendChild(feed_item);
     }
 }
 

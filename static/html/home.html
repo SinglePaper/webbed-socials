@@ -16,8 +16,19 @@
   </head>
   <body>
 
-<div class="container text-center">
-    <div id="feed-container" class="row mb-5">
+
+<div class="container text-center d-none d-md-block">
+    <div id="feed-container-desktop" class="row mb-5">
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="container text-center d-block d-md-none" id="feed-container-mobile">
+    <div class="row mb-5">
       <div class="d-flex justify-content-center">
         <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
