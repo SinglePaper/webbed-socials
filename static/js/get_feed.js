@@ -69,23 +69,61 @@ function getBaseUrl(url) {
     return re.exec(url);
 }
 
+function shortenString(string, n){
+  let splitString = string.split(" ")
+  if (splitString.length <= n) return string
+  return splitString.slice(0,n).join(" ") + "..."
+}
 
-function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail.svg") {
+
+function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail_720p.png", mobile=false) {
     const feedItem = document.createElement('div');
-    feedItem.classList.add('col');
+
+    feedItem.classList.add(mobile?'row':'col');
     feedItem.classList.add('mx-auto');
+
+    let DESKTOP_CARD = `
+        <div class="card mx-auto" style="width: 18rem;">
+            <img class="card-img-overlay w-auto p-2" src="${feedIcon}">
+            <img src="${thumbnail}">
+            <div class="card-body">
+                <h5 class="card-title">${title}</h5>
+                <p class="card-text"><small class="text-body-secondary">${feedTitle} • ${timeSince(pubDate)} ago</small></p>
+            </div>
+        </div>
+    `
+
+    let PHONE_CARD = `
+    <div class="row mb-1 align-items-center" >
+      <div class="col-5">
+        <img class="position-absolute p-2" style="width:10%" src="${feedIcon}">
+        <img src="${thumbnail}" class="img-fluid img-thumbnail">
+      </div>  
+      <div class="col-7">
+        <p style="text-align:left; text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">
+          <b>${title}</b><br>
+          <small>${description.replace(/<[^>]+>/g, "")}</small>
+        </p>
+      </div>
+      <div>
+        <p class="card-text"><small class="text-body-secondary" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${shortenString(feedTitle, 15)} • ${timeSince(pubDate)} ago</small></p>
+      </div>
+    </div>
+    <hr style="padding:0px; margin:1rem;">
+    `
+
     feedItem.innerHTML = `
         <a href="${link}" target="_blank" label="${guid}">
-            <div class="card mx-auto" style="width: 18rem;">
-                <img class="card-img-overlay w-auto p-2" src="${feedIcon}">
-                <img src="${thumbnail}">
-                <div class="card-body">
-                    <h5 class="card-title">${title}</h5>
-                    <p class="card-text">${feedTitle} • ${timeSince(pubDate)} ago</p>
-                </div>
-            </div>
+        <div>
+          <div class="d-none d-md-block">
+            ${DESKTOP_CARD}
+          </div>
+          <div class="d-block d-md-none">
+            ${PHONE_CARD}
+          </div>
+        </div>
         </a>
-    `;
+    `
     return feedItem
 }
 
@@ -104,8 +142,9 @@ function handleYouTube(xmlDoc) {
         const hosturl = new URL(item.querySelector("link").attributes.href.value)
         const feedIcon = "../images/favicon_yt.png"
         const thumbnail = item.querySelector("thumbnail").attributes.url.value.replace("hqdefault", "hq720")
-        const feedItem = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
-        feedItems.push([pubDate, feedItem]);
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail, mobile=true);
+        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
         
     });
     return feedItems
@@ -118,14 +157,16 @@ function handleBluesky(xmlDoc) {
     let feedItems = [];
 
     items.forEach(item => {
+        const title = "New Post on Bluesky"
         const link = item.querySelector("link").textContent;
         const description = item.querySelector("description").textContent;
-        const postPreview = description.split(" ").slice(0,7).join(" ") + "..."
+        const postPreview = shortenString(description, 7)
         const guid = item.querySelector("guid").textContent;
         const pubDate = new Date(item.querySelector("pubDate").textContent);
         const feedIcon = "../images/favicon_bsky.png"
-        const feedItem = createFeedItem(postPreview,feedTitle,link,guid,pubDate,feedIcon);
-        feedItems.push([pubDate, feedItem]);
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon);
+        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
     });
     return feedItems
 }
@@ -185,8 +226,10 @@ async function fetchRSS(targetUrl) {
             if (img && img.src) {
                 thumbnail = img.src
             }
-            const feedItem = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
-            feedItems.push([pubDate, feedItem]);
+            const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
+            const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail,mobile=true);
+
+            feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
             
         });
         return feedItems
@@ -202,12 +245,16 @@ async function loadFeeds() {
         all_feed_items = all_feed_items.concat(await fetchRSS(targetUrl))
     }
     all_feed_items.sort(function(a,b){return b[0]-a[0]})
-    const feedContainer = document.getElementById('feed-container');
-    feedContainer.innerHTML = '';
+    const feedContainerDesktop = document.getElementById('feed-container-desktop');
+    const feedContainerMobile = document.getElementById('feed-container-mobile');
+    feedContainerDesktop.innerHTML = '';
+    feedContainerMobile.innerHTML = '';
 
     for (let i in all_feed_items) {
         let feed_item = all_feed_items[i][1]
-        feedContainer.appendChild(feed_item);
+        feedContainerDesktop.appendChild(feed_item);
+        feed_item = all_feed_items[i][2]
+        feedContainerMobile.appendChild(feed_item);
     }
 }
 
