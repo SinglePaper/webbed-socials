@@ -3,9 +3,9 @@ let targetUrls = [
     "https://singlepaper.github.io/dropout-rss/feeds/feed-game-changer.xml",
     "https://singlepaper.github.io/dropout-rss/feeds/feed-very-important-people.xml",
     "https://singlepaper.github.io/dropout-rss/feeds/feed-make-some-noise.xml",
-    // "https://rss.nebula.app/video/channels/jetlag.rss",
-    // "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
-    // "https://bsky.app/profile/did:plc:hbizd4k2uhfdtph5dwtfai2v/rss"
+    "https://rss.nebula.app/video/channels/jetlag.rss",
+    "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
+    "https://bsky.app/profile/did:plc:hbizd4k2uhfdtph5dwtfai2v/rss"
 ]
 
 
@@ -69,8 +69,14 @@ function getBaseUrl(url) {
     return re.exec(url);
 }
 
+function shortenString(string, n){
+  let splitString = string.split(" ")
+  if (splitString.length <= n) return string
+  return splitString.slice(0,n).join(" ") + "..."
+}
 
-function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail.svg", mobile=false) {
+
+function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail_720p.png", mobile=false) {
     const feedItem = document.createElement('div');
 
     feedItem.classList.add(mobile?'row':'col');
@@ -88,9 +94,22 @@ function createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail="..
     `
 
     let PHONE_CARD = `
-    <div class="row mb-5 text-center">
-      ${title}
+    <div class="row mb-1 align-items-center" >
+      <div class="col-5">
+        <img class="position-absolute p-2" style="width:10%" src="${feedIcon}">
+        <img src="${thumbnail}" class="img-fluid img-thumbnail">
+      </div>  
+      <div class="col-7">
+        <p style="text-align:left; text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">
+          <b>${title}</b><br>
+          <small>${description.replace(/<[^>]+>/g, "")}</small>
+        </p>
+      </div>
+      <div>
+        <p class="card-text"><small class="text-body-secondary" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${shortenString(feedTitle, 15)} • ${timeSince(pubDate)} ago</small></p>
+      </div>
     </div>
+    <hr style="padding:0px; margin:1rem;">
     `
 
     feedItem.innerHTML = `
@@ -123,8 +142,8 @@ function handleYouTube(xmlDoc) {
         const hosturl = new URL(item.querySelector("link").attributes.href.value)
         const feedIcon = "../images/favicon_yt.png"
         const thumbnail = item.querySelector("thumbnail").attributes.url.value.replace("hqdefault", "hq720")
-        const feedItemDesktop = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
-        const feedItemMobile = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail, mobile=true);
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail, mobile=true);
         feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
         
     });
@@ -138,14 +157,15 @@ function handleBluesky(xmlDoc) {
     let feedItems = [];
 
     items.forEach(item => {
+        const title = "New Post on Bluesky"
         const link = item.querySelector("link").textContent;
         const description = item.querySelector("description").textContent;
-        const postPreview = description.split(" ").slice(0,7).join(" ") + "..."
+        const postPreview = shortenString(description, 7)
         const guid = item.querySelector("guid").textContent;
         const pubDate = new Date(item.querySelector("pubDate").textContent);
         const feedIcon = "../images/favicon_bsky.png"
-        const feedItemDesktop = createFeedItem(postPreview,feedTitle,link,guid,pubDate,feedIcon);
-        const feedItemMobile = createFeedItem(postPreview,feedTitle,link,guid,pubDate,feedIcon);
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon);
         feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
     });
     return feedItems
@@ -206,8 +226,8 @@ async function fetchRSS(targetUrl) {
             if (img && img.src) {
                 thumbnail = img.src
             }
-            const feedItemDesktop = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail);
-            const feedItemMobile = createFeedItem(title,feedTitle,link,guid,pubDate,feedIcon,thumbnail,mobile=true);
+            const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
+            const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail,mobile=true);
 
             feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
             
