@@ -5,7 +5,8 @@ let targetUrls = [
     "https://singlepaper.github.io/dropout-rss/feeds/feed-make-some-noise.xml",
     "https://rss.nebula.app/video/channels/jetlag.rss",
     "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
-    "https://bsky.app/profile/did:plc:hbizd4k2uhfdtph5dwtfai2v/rss"
+    "https://bsky.app/profile/microsff.com/rss",
+    "https://openrss.org/feed/www.twitch.tv/kickthepj/videos?filter=all&sort=time"
 ]
 
 
@@ -150,6 +151,40 @@ function handleYouTube(xmlDoc) {
     return feedItems
 }
 
+function handleTwitch(xmlDoc) {
+    const feedTitle = xmlDoc.querySelector("title").textContent.split(" on Twitch")[0]
+
+    const items = xmlDoc.querySelectorAll("item");
+    let feedItems = [];
+
+    items.forEach(item => {
+        const title = item.querySelector("title").textContent;
+        const link = item.querySelector("link").textContent;
+        const description = `New stream by ${feedTitle}`
+        const guid = item.querySelector("guid").textContent;
+        const pubDate = new Date(item.querySelector("pubDate").textContent);
+        const hosturl = new URL(item.querySelector("link").textContent)
+        const feedIcon = "../images/favicon_twitch.png";
+
+        let thumbnail = "../images/default_thumbnail_720p.svg";
+        // Extracting thumbnail
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = item.querySelector("description").textContent;
+
+        // Find the first image tag
+        const img = tempDiv.querySelector('img');
+        if (img && img.src) {
+            thumbnail = img.src.includes("404_processing") ? `https://static-cdn.jtvnw.net/previews-ttv/live_user_${feedTitle}.jpg` : img.src
+        }
+
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail, mobile=true);
+        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+        
+    });
+    return feedItems
+}
+
 function handleBluesky(xmlDoc) {
     const feedTitle = xmlDoc.querySelector("title").textContent
     
@@ -196,6 +231,10 @@ async function fetchRSS(targetUrl) {
         // YouTube is weird, so we'll handle it in a separate function.
         if (targetUrl.includes("youtube.com/feeds")) {
             return handleYouTube(xmlDoc)
+        }        
+        // Twitch is weird, so we'll handle it in a separate function.
+        if (targetUrl.includes("www.twitch.tv")) {
+            return handleTwitch(xmlDoc)
         }
         // Bluesky is weird, so we'll handle it in a separate function.
         if (targetUrl.includes("bsky.app")) {
@@ -216,7 +255,7 @@ async function fetchRSS(targetUrl) {
             const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML)
             const feedIcon = new URL("favicon.ico",hosturl.protocol+"//"+hosturl.hostname).href;
 
-            let thumbnail = "images/default_thumbnail.svg";
+            let thumbnail = "../images/default_thumbnail.svg";
             // Extracting thumbnail
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = description;

@@ -26,11 +26,11 @@ app.get('/rss-proxy', async (req, res) => {
     return res.status(400).send('Missing "url" query parameter');
   }
 
-  if (url in rssCache && (Date.now() - rssCache[url].timestamp) > 300000) {
+  
+  if (url in rssCache && (Date.now() - rssCache[url].timestamp) < 300000) {
     res.send(rssCache[url].data);
     return
   }
-
   try {
     const response = await axios.get(url, {
       headers: { 'Accept': 'application/xml' }
@@ -41,7 +41,8 @@ app.get('/rss-proxy', async (req, res) => {
       timestamp: Date.now(),
       data: response.data
     }
-  } catch (error) {
+    // console.log(`Updating cache for ${url}`)
+  } catch (error) { 
     console.error('Error fetching RSS feed:', error.message);
     res.status(500).send('Failed to fetch RSS feed');
   }
