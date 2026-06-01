@@ -159,7 +159,6 @@ function handleTwitch(xmlDoc) {
 
     items.forEach(item => {
         const title = item.querySelector("title").textContent;
-        const link = item.querySelector("link").textContent;
         const description = `New stream by ${feedTitle}`
         const guid = item.querySelector("guid").textContent;
         const pubDate = new Date(item.querySelector("pubDate").textContent);
@@ -173,9 +172,12 @@ function handleTwitch(xmlDoc) {
 
         // Find the first image tag
         const img = tempDiv.querySelector('img');
+        let currentlyLive = false
         if (img && img.src) {
-            thumbnail = img.src.includes("404_processing") ? `https://static-cdn.jtvnw.net/previews-ttv/live_user_${feedTitle}.jpg` : img.src
+            currentlyLive = img.src.includes("404_processing")
+            thumbnail = currentlyLive ? `https://static-cdn.jtvnw.net/previews-ttv/live_user_${feedTitle}.jpg` : img.src
         }
+        const link = currentlyLive ? `https://www.twitch.tv/${feedTitle}` : item.querySelector("link").textContent;
 
         const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
         const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail, mobile=true);
