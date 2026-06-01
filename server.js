@@ -5,6 +5,7 @@ const axios = require('axios');
 
 const app = express();
 const PORT = 8080;
+const CACHINGTIME = 300 // time between cache updates in seconds
 
 // Enable CORS for all routes
 app.use(cors());
@@ -27,7 +28,7 @@ app.get('/rss-proxy', async (req, res) => {
   }
 
   
-  if (url in rssCache && (Date.now() - rssCache[url].timestamp) < 300000) {
+  if (url in rssCache && (Date.now() - rssCache[url].timestamp) < (CACHINGTIME * 1000)) {
     res.send(rssCache[url].data);
     return
   }
