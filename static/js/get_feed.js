@@ -6,7 +6,7 @@ let targetUrls = [
     "https://rss.nebula.app/video/channels/jetlag.rss",
     "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
     "https://bsky.app/profile/microsff.com/rss",
-    "https://openrss.org/feed/www.twitch.tv/kickthepj/videos?filter=all&sort=time"
+    "https://twitchrss.appspot.com/vod/kickthepj"
 ]
 
 
@@ -152,7 +152,7 @@ function handleYouTube(xmlDoc) {
 }
 
 function handleTwitch(xmlDoc) {
-    const feedTitle = xmlDoc.querySelector("title").textContent.split(" on Twitch")[0]
+    const feedTitle = xmlDoc.querySelector("title").textContent.split("'s Twitch")[0]
 
     const items = xmlDoc.querySelectorAll("item");
     let feedItems = [];
@@ -235,7 +235,7 @@ async function fetchRSS(targetUrl) {
             return handleYouTube(xmlDoc)
         }        
         // Twitch is weird, so we'll handle it in a separate function.
-        if (targetUrl.includes("www.twitch.tv")) {
+        if (targetUrl.includes("twitchrss")) {
             return handleTwitch(xmlDoc)
         }
         // Bluesky is weird, so we'll handle it in a separate function.
