@@ -70,6 +70,10 @@ function getBaseUrl(url) {
     return re.exec(url);
 }
 
+function removeHTML(text) {
+  return text.replace(/<[^>]*>/g, ' ')
+}
+
 function shortenString(string, n){
   let splitString = string.split(" ")
   if (splitString.length <= n) return string
@@ -79,39 +83,69 @@ function shortenString(string, n){
 
 function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail_720p.png", mobile=false) {
     const feedItem = document.createElement('div');
-
-    feedItem.classList.add(mobile?'row':'col');
-    feedItem.classList.add('mx-auto');
+    if (mobile) {
+      feedItem.classList.add('row');
+    } else {
+      feedItem.classList.add('col-12');
+      feedItem.classList.add('col-md-6');
+      feedItem.classList.add('col-lg-3');
+      feedItem.classList.add('col-xl-3');
+    }
 
     let DESKTOP_CARD = `
-        <div class="card mx-auto" style="width: 18rem;">
-            <img class="card-img-overlay w-auto p-2" src="${feedIcon}">
-            <img src="${thumbnail}">
-            <div class="card-body">
-                <h5 class="card-title">${title}</h5>
-                <p class="card-text"><small class="text-body-secondary">${feedTitle} • ${timeSince(pubDate)} ago</small></p>
-            </div>
+      <div class="mb-4">
+        <div class="text-start position-relative">
+          <div class="position-relative">
+            <img
+              src="${thumbnail}"
+              class="w-100 shadow-1-strong rounded mb-2 img-fluid"
+              style="display:block;"
+              alt=""
+            >
+
+            <img
+              src="${feedIcon}"
+              class="position-absolute m-2 img-fluid"
+              style="width:15%; height:auto; top:0; left:0;"
+              alt=""
+            >
+          </div>
+
+          <b>${title}</b><br>
+          <small>${shortenString(feedTitle, 15)}<br>${timeSince(pubDate)} ago</small>
         </div>
+      </div>
     `
 
     let PHONE_CARD = `
-    <div class="row mb-1 align-items-center" >
-      <div class="col-5">
-        <img class="position-absolute p-2" style="width:10%" src="${feedIcon}">
-        <img src="${thumbnail}" class="img-fluid img-thumbnail">
-      </div>  
-      <div class="col-7">
-        <p style="text-align:left; text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">
+    <div class="row mb-3">
+      <div class="col-6">
+          <div class="position-relative">
+            <img
+              src="${thumbnail}"
+              class="w-100 shadow-1-strong rounded mb-2 img-fluid"
+              style="display:block;"
+              alt=""
+            >
+
+            <img
+              src="${feedIcon}"
+              class="position-absolute m-2 img-fluid"
+              style="width:15%; height:auto; top:0; left:0;"
+              alt=""
+            >
+          </div>
+      </div>
+      <div class="col-6">
+        <p style="text-align:left; text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical;">
           <b>${title}</b><br>
-          <small>${description.replace(/<[^>]+>/g, "")}</small>
+          <small>${description}</small>
         </p>
       </div>
-      <div>
-        <p class="card-text"><small class="text-body-secondary" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${shortenString(feedTitle, 15)} • ${timeSince(pubDate)} ago</small></p>
-      </div>
+      <small class="text-body-secondary" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${shortenString(feedTitle, 15)} • ${timeSince(pubDate)} ago</small>
     </div>
-    <hr style="padding:0px; margin:1rem;">
-    `
+    
+    ` //<hr style="padding:0px; margin:1rem;">
 
     feedItem.innerHTML = `
         <a href="${link}" target="_blank" label="${guid}">
@@ -251,7 +285,7 @@ async function fetchRSS(targetUrl) {
         items.forEach(item => {
             const title = item.querySelector("title").textContent;
             const link = item.querySelector("link").textContent;
-            const description = item.querySelector("description").textContent;
+            let description = item.querySelector("description").textContent;
             const guid = item.querySelector("guid").textContent;
             const pubDate = new Date(item.querySelector("pubDate").textContent);
             const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML)
@@ -267,6 +301,8 @@ async function fetchRSS(targetUrl) {
             if (img && img.src) {
                 thumbnail = img.src
             }
+
+            description = removeHTML(description)
             const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
             const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail,mobile=true);
 
