@@ -27,7 +27,7 @@
       const frame = document.getElementById('frame');
       const colorModeBtn = document.getElementById("colorModeBtn")
       let curColorMode = document.documentElement.getAttribute("data-bs-theme")
-      colorModeBtn.textContent = localStorage.getItem("colorMode") == "dark"?"🌖":"🌘"
+      colorModeBtn.innerHTML = localStorage.getItem("colorMode") == "dark"?darkModeIcon:lightModeIcon
 
       frame.addEventListener('load', () => {
         frame.contentWindow.postMessage({ type: 'set-theme', theme: document.documentElement.getAttribute("data-bs-theme") }, '*');
@@ -38,7 +38,7 @@
         localStorage.setItem("colorMode", curColorMode == "dark" ? null : "dark")
         document.documentElement.setAttribute("data-bs-theme", localStorage.getItem("colorMode"))
         frame.contentWindow.postMessage({ type: 'set-theme', theme: localStorage.getItem("colorMode") }, '*');
-        colorModeBtn.textContent = localStorage.getItem("colorMode") == "dark"?"🌖":"🌘"
+        colorModeBtn.innerHTML = localStorage.getItem("colorMode") == "dark"?darkModeIcon:lightModeIcon
       }
     </script>
   </footer>
