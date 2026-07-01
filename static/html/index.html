@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,14 +11,35 @@
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">RSS</a>
+        <a id="colorModeBtn" class="nav-link me-2" onclick="toggleColorMode()"></a>
+
     </div>
     </nav>
     <hr style="margin-top:0;padding-top:0">
     <div style="height:94%">
-        <iframe src="html/home.html" style="height:100%; width:100%"></iframe>
+        <iframe id="frame" src="html/home.html"  allowtransparency="true" style="background-color:transparent; height:100%; width:100%; color-scheme: auto"></iframe>
     </div>
   </body>
   <footer>
     <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/set_color_mode.js"></script>
+    <script>
+      const frame = document.getElementById('frame');
+      const colorModeBtn = document.getElementById("colorModeBtn")
+      let curColorMode = document.documentElement.getAttribute("data-bs-theme")
+      colorModeBtn.textContent = localStorage.getItem("colorMode") == "dark"?"🌖":"🌘"
+
+      frame.addEventListener('load', () => {
+        frame.contentWindow.postMessage({ type: 'set-theme', theme: document.documentElement.getAttribute("data-bs-theme") }, '*');
+      });
+
+      function toggleColorMode() {
+        curColorMode = document.documentElement.getAttribute("data-bs-theme")
+        localStorage.setItem("colorMode", curColorMode == "dark" ? null : "dark")
+        document.documentElement.setAttribute("data-bs-theme", localStorage.getItem("colorMode"))
+        frame.contentWindow.postMessage({ type: 'set-theme', theme: localStorage.getItem("colorMode") }, '*');
+        colorModeBtn.textContent = localStorage.getItem("colorMode") == "dark"?"🌖":"🌘"
+      }
+    </script>
   </footer>
 </html>
