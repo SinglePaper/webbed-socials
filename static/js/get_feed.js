@@ -1,14 +1,15 @@
-//let targetUrl = "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA";
-let targetUrls = [
-    "https://singlepaper.github.io/dropout-rss/feeds/feed-game-changer.xml",
-    "https://singlepaper.github.io/dropout-rss/feeds/feed-very-important-people.xml",
-    "https://singlepaper.github.io/dropout-rss/feeds/feed-make-some-noise.xml",
-    "https://rss.nebula.app/video/channels/jetlag.rss",
-    "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
-    "https://bsky.app/profile/microsff.com/rss",
-    "https://twitchrss.appspot.com/vod/kickthepj"
-]
+let targetUrls;
 
+function loadUrls() { // Not implemented
+  let feedList = JSON.parse(localStorage.feedList)
+  console.log(feedList)
+  if (feedList.folders.length === 0 && feedList.root.length === 0) return []
+  let feedUrls = [
+    ...feedList.folders.flatMap(f => f.feeds.map(feed => feed.url)),
+    ...feedList.root.map(feed => feed.url)
+  ]
+  return feedUrls
+}
 
 // Source - https://stackoverflow.com/a/3177838
 // Posted by Sky Sanders, modified by community. See post 'Timeline' for change history
@@ -251,7 +252,7 @@ async function fetchRSS(targetUrl) {
     const protocol = window.location.protocol;
     const host = window.location.host;
     const fetchUrl = `${protocol}//${host}/rss-proxy?url=${encodeURIComponent(targetUrl)}`;
-    console.log(fetchUrl)
+    // console.log(fetchUrl)
     try {
         // console.log('Fetching URL:', fetchUrl); // Debugging 1: Log the request URL
         const response = await fetch(fetchUrl);
@@ -335,4 +336,15 @@ async function loadFeeds() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadFeeds);
+
+window.addEventListener('message', (e) => {
+    if (e.data?.type === 'load-feeds') {
+      console.log("Fetching urls...")
+      console.log("Loading feeds...")
+      targetUrls = loadUrls()
+      loadFeeds()
+    }
+});
+
+// document.addEventListener('DOMContentLoaded', loadFeeds);
+
