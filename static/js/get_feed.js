@@ -243,6 +243,42 @@ function handleBluesky(xmlDoc) {
     return feedItems
 }
 
+function handleRDF(xmlDoc) {
+    const feedTitle = xmlDoc.querySelector("title").textContent
+    
+    const items = xmlDoc.querySelectorAll("item");
+    let feedItems = [];
+
+    items.forEach(item => {
+        const title = item.querySelector("title").textContent;
+        const link = item.querySelector("link").textContent;
+        let description = item.querySelector("description").textContent;
+        const guid = item.querySelector("link").textContent;
+        const pubDate = new Date(item.querySelector("date").textContent);
+        const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML || xmlDoc.querySelectorAll("link")[0].attributes.href.value);
+        const feedIcon = new URL("favicon.ico",hosturl.protocol+"//"+hosturl.hostname).href ;
+
+        let thumbnail = "../images/default_thumbnail.svg";
+        // Extracting thumbnail
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = description;
+
+        // Find the first image tag
+        const img = tempDiv.querySelector('img');
+        if (img && img.src) {
+            thumbnail = img.src
+        }
+
+        description = removeHTML(description)
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail,mobile=true);
+
+        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+        
+    });
+    return feedItems
+}
+
 
 // Source - https://stackoverflow.com/a/78602700
 // Posted by Martin Honnen
@@ -277,6 +313,10 @@ async function fetchRSS(targetUrl) {
         if (targetUrl.includes("bsky.app")) {
             return handleBluesky(xmlDoc)
         }
+        // RDF works a little differently
+        if (xmlDoc.querySelector("RDF")) {
+            return handleRDF(xmlDoc)
+        }
 
         const feedTitle = xmlDoc.querySelector("channel").querySelector("title").textContent
         
@@ -289,19 +329,29 @@ async function fetchRSS(targetUrl) {
             let description = item.querySelector("description").textContent;
             const guid = item.querySelector("guid").textContent;
             const pubDate = new Date(item.querySelector("pubDate").textContent);
-            const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML)
-            const feedIcon = new URL("favicon.ico",hosturl.protocol+"//"+hosturl.hostname).href;
+            const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML || xmlDoc.querySelectorAll("link")[0].attributes.href.value);
+            const feedIcon = new URL("favicon.ico",hosturl.protocol+"//"+hosturl.hostname).href ;
 
             let thumbnail = "../images/default_thumbnail.svg";
             // Extracting thumbnail
-            const tempDiv = document.createElement('div');
+            let tempDiv = document.createElement('div');
             tempDiv.innerHTML = description;
 
             // Find the first image tag
-            const img = tempDiv.querySelector('img');
+            let img = tempDiv.querySelector('img');
             if (img && img.src) {
                 thumbnail = img.src
+            } else {
+              console.log("Last attempt to get thumbnail")
+              // Find the first image tag
+              let img = xmlDoc.getElementsByTagName('img')[0];
+              console.log(img)
+              if (img && img.src) {
+                  thumbnail = img.src
+              }
             }
+
+            
 
             description = removeHTML(description)
             const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
@@ -312,7 +362,7 @@ async function fetchRSS(targetUrl) {
         });
         return feedItems
     } catch (error) {
-        console.error('Error fetching the RSS feed:', error);
+        console.error(`Error fetching the RSS feed ( ${fetchUrl} ):`, error);
     }
 }
 
