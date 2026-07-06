@@ -33,10 +33,13 @@ app.get('/rss-proxy', async (req, res) => {
     return
   }
   try {
+    res.set('Content-Type', 'application/xml; charset=utf-8');
+    res.set('Content-Disposition', 'inline');
     const response = await axios.get(url, {
-      headers: { 'Accept': 'application/xml' }
+      responseType: 'text',
+      headers: { Accept: 'application/xml,text/xml,*/*' }
     });
-    res.set('Content-Type', 'application/xml');
+    console.log(url)
     res.send(response.data);
     rssCache[url] = {
       timestamp: Date.now(),

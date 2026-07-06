@@ -1,14 +1,20 @@
-//let targetUrl = "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA";
-let targetUrls = [
-    "https://singlepaper.github.io/dropout-rss/feeds/feed-game-changer.xml",
-    "https://singlepaper.github.io/dropout-rss/feeds/feed-very-important-people.xml",
-    "https://singlepaper.github.io/dropout-rss/feeds/feed-make-some-noise.xml",
-    "https://rss.nebula.app/video/channels/jetlag.rss",
-    "https://www.youtube.com/feeds/videos.xml?playlist_id=UULFGaVdbSav8xWuFWTadK6loA",
-    "https://bsky.app/profile/microsff.com/rss",
-    "https://twitchrss.appspot.com/vod/kickthepj"
-]
+let targetFeeds;
+let feedInfos = {}
 
+function loadUrls(ids=[]) {
+  let feedList = JSON.parse(localStorage.feedList)
+  console.log(feedList)
+  if (feedList.folders.length === 0 && feedList.root.length === 0) return []
+  let feeds = [
+    ...feedList.folders.flatMap(f => f.feeds),
+    ...feedList.root.map(feed => feed)
+  ]
+
+  if (ids.length > 0) {
+    feeds = feeds.filter(item => ids.includes(item.id))
+  }
+  return feeds
+}
 
 // Source - https://stackoverflow.com/a/3177838
 // Posted by Sky Sanders, modified by community. See post 'Timeline' for change history
@@ -80,8 +86,12 @@ function shortenString(string, n){
   return splitString.slice(0,n).join(" ") + "..."
 }
 
+function extractFirstUrl(str) {
+  const match = str.match(/https?:\/\/[^\s<>"']+/i);
+  return match ? match[0] : '';
+}
 
-function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail="../images/default_thumbnail_720p.png", mobile=false) {
+function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,feedId, thumbnail="../images/default_thumbnail_720p.png", mobile=false) {
     const feedItem = document.createElement('div');
     if (mobile) {
       feedItem.classList.add('row');
@@ -95,60 +105,66 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,t
     let DESKTOP_CARD = `
       <div class="mb-4">
         <div class="text-start position-relative">
-          <div class="position-relative">
-            <img
-              src="${thumbnail}"
-              class="w-100 shadow-1-strong rounded mb-2 img-fluid"
-              style="display:block;"
-              alt=""
-            >
+          <a href="${link}" target="_blank" label="${guid}">
+            <div class="position-relative">
+              <img
+                src="${thumbnail}"
+                class="w-100 shadow-1-strong rounded mb-2 img-fluid"
+                style="display:block;"
+                alt=""
+              >
 
-            <img
-              src="${feedIcon}"
-              class="position-absolute m-2 img-fluid"
-              style="width:15%; height:auto; top:0; left:0;"
-              alt=""
-            >
-          </div>
+              <img
+                src="${feedIcon}"
+                class="position-absolute m-2 img-fluid"
+                style="width:15%; height:auto; top:0; left:0;"
+                alt=""
+              >
+            </div>
 
-          <b>${title}</b><br>
-          <small>${shortenString(feedTitle, 15)}<br>${timeSince(pubDate)} ago</small>
+            <b>${title}</b><br>
+          </a>
+          <small><a onclick="initLoadFeeds(ids=[${feedId}])" style="cursor:pointer">${shortenString(feedTitle, 15)}</a><br>${timeSince(pubDate)} ago</small>
         </div>
       </div>
     `
 
     let PHONE_CARD = `
     <div class="row mb-3">
-      <div class="col-6">
-          <div class="position-relative">
-            <img
-              src="${thumbnail}"
-              class="w-100 shadow-1-strong rounded mb-2 img-fluid"
-              style="display:block;"
-              alt=""
-            >
+      <a href="${link}" target="_blank" label="${guid}">
+        <div class="col-6">
+            <div class="position-relative">
+              <img
+                src="${thumbnail}"
+                class="w-100 shadow-1-strong rounded mb-2 img-fluid"
+                style="display:block;"
+                alt=""
+              >
 
-            <img
-              src="${feedIcon}"
-              class="position-absolute m-2 img-fluid"
-              style="width:15%; height:auto; top:0; left:0;"
-              alt=""
-            >
-          </div>
-      </div>
-      <div class="col-6">
-        <p style="text-align:left; text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical;">
-          <b>${title}</b><br>
-          <small>${description}</small>
-        </p>
-      </div>
-      <small class="text-body-secondary" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">${shortenString(feedTitle, 15)} • ${timeSince(pubDate)} ago</small>
+              <img
+                src="${feedIcon}"
+                class="position-absolute m-2 img-fluid"
+                style="width:15%; height:auto; top:0; left:0;"
+                alt=""
+              >
+            </div>
+        </div>
+        <div class="col-6">
+          <p style="text-align:left; text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical;">
+            <b>${title}</b><br>
+            <small>${description}</small>
+          </p>
+        </div>
+      </a>
+      <small class="text-body-secondary" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+        <a onclick="initLoadFeeds(ids=[${feedId}])" style="cursor:pointer">${shortenString(feedTitle, 15)}</a> • ${timeSince(pubDate)} ago
+      </small>
+      
     </div>
     
     ` //<hr style="padding:0px; margin:1rem;">
 
     feedItem.innerHTML = `
-        <a href="${link}" target="_blank" label="${guid}">
         <div>
           <div class="d-none d-md-block">
             ${DESKTOP_CARD}
@@ -157,12 +173,11 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,t
             ${PHONE_CARD}
           </div>
         </div>
-        </a>
     `
     return feedItem
 }
 
-function handleYouTube(xmlDoc) {
+function handleYouTube(xmlDoc, targetFeed) {
     const feedTitle = xmlDoc.querySelector("author").querySelector("name").textContent
     
     const items = xmlDoc.querySelectorAll("entry");
@@ -177,15 +192,24 @@ function handleYouTube(xmlDoc) {
         const hosturl = new URL(item.querySelector("link").attributes.href.value)
         const feedIcon = "../images/favicon_yt.png"
         const thumbnail = item.querySelector("thumbnail").attributes.url.value.replace("hqdefault", "hq720")
-        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
-        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail, mobile=true);
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail, mobile=true);
         feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
-        
+
+        // Store information for feeds list in sidebar
+        feedInfos[targetFeed.id] = {
+          "displayName": targetFeed.name,
+          "originalName": feedTitle,
+          "icon": feedIcon,
+          "nItems": items.length
+        }
     });
+
+
     return feedItems
 }
 
-function handleTwitch(xmlDoc) {
+function handleTwitch(xmlDoc, targetFeed) {
     const feedTitle = xmlDoc.querySelector("title").textContent.split("'s Twitch")[0]
 
     const items = xmlDoc.querySelectorAll("item");
@@ -213,15 +237,23 @@ function handleTwitch(xmlDoc) {
         }
         const link = currentlyLive ? `https://www.twitch.tv/${feedTitle}` : item.querySelector("link").textContent;
 
-        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
-        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail, mobile=true);
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail, mobile=true);
         feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+
+        // Store information for feeds list in sidebar
+        feedInfos[targetFeed.id] = {
+          "displayName": targetFeed.name,
+          "originalName": feedTitle,
+          "icon": feedIcon,
+          "nItems": items.length
+        }
         
     });
     return feedItems
 }
 
-function handleBluesky(xmlDoc) {
+function handleBluesky(xmlDoc, targetFeed) {
     const feedTitle = xmlDoc.querySelector("title").textContent
     
     const items = xmlDoc.querySelectorAll("item");
@@ -235,9 +267,60 @@ function handleBluesky(xmlDoc) {
         const guid = item.querySelector("guid").textContent;
         const pubDate = new Date(item.querySelector("pubDate").textContent);
         const feedIcon = "../images/favicon_bsky.png"
-        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon);
-        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon);
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id);
         feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+
+        // Store information for feeds list in sidebar
+        feedInfos[targetFeed.id] = {
+          "displayName": targetFeed.name,
+          "originalName": feedTitle,
+          "icon": feedIcon,
+          "nItems": items.length
+        }
+    });
+    return feedItems
+}
+
+function handleRDF(xmlDoc, targetFeed) {
+    const feedTitle = xmlDoc.querySelector("title").textContent
+    
+    const items = xmlDoc.querySelectorAll("item");
+    let feedItems = [];
+
+    items.forEach(item => {
+        const title = item.querySelector("title").textContent;
+        const link = item.querySelector("link").textContent;
+        let description = item.querySelector("description").textContent;
+        const guid = item.querySelector("link").textContent;
+        const pubDate = new Date(item.querySelector("date").textContent);
+        const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML || xmlDoc.querySelectorAll("link")[0].attributes.href.value);
+        const feedIcon = new URL("favicon.ico",hosturl.protocol+"//"+hosturl.hostname).href ;
+
+        let thumbnail = "../images/default_thumbnail.svg";
+        // Extracting thumbnail
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = description;
+
+        // Find the first image tag
+        const img = tempDiv.querySelector('img');
+        if (img && img.src) {
+            thumbnail = img.src
+        }
+
+        description = removeHTML(description)
+        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
+        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail,mobile=true);
+
+        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+
+        // Store information for feeds list in sidebar
+        feedInfos[targetFeed.id] = {
+          "displayName": targetFeed.name,
+          "originalName": feedTitle,
+          "icon": feedIcon,
+          "nItems": items.length
+        }
     });
     return feedItems
 }
@@ -247,11 +330,11 @@ function handleBluesky(xmlDoc) {
 // Posted by Martin Honnen
 // Retrieved 2026-05-23, License - CC BY-SA 4.0
 
-async function fetchRSS(targetUrl) {
+async function fetchRSS(targetFeed) {
     const protocol = window.location.protocol;
     const host = window.location.host;
-    const fetchUrl = `${protocol}//${host}/rss-proxy?url=${encodeURIComponent(targetUrl)}`;
-    console.log(fetchUrl)
+    const fetchUrl = `${protocol}//${host}/rss-proxy?url=${encodeURIComponent(targetFeed.url)}`;
+    // console.log(fetchUrl)
     try {
         // console.log('Fetching URL:', fetchUrl); // Debugging 1: Log the request URL
         const response = await fetch(fetchUrl);
@@ -265,16 +348,20 @@ async function fetchRSS(targetUrl) {
         // console.log('Parsed XML:', xmlDoc); // Debugging 3: Log the parsed XML
 
         // YouTube is weird, so we'll handle it in a separate function.
-        if (targetUrl.includes("youtube.com/feeds")) {
-            return handleYouTube(xmlDoc)
+        if (targetFeed.url.includes("youtube.com/feeds")) {
+            return handleYouTube(xmlDoc, targetFeed)
         }        
         // Twitch is weird, so we'll handle it in a separate function.
-        if (targetUrl.includes("twitchrss")) {
-            return handleTwitch(xmlDoc)
+        if (targetFeed.url.includes("twitchrss")) {
+            return handleTwitch(xmlDoc, targetFeed)
         }
         // Bluesky is weird, so we'll handle it in a separate function.
-        if (targetUrl.includes("bsky.app")) {
-            return handleBluesky(xmlDoc)
+        if (targetFeed.url.includes("bsky.app")) {
+            return handleBluesky(xmlDoc, targetFeed)
+        }
+        // RDF works a little differently
+        if (xmlDoc.querySelector("RDF")) {
+            return handleRDF(xmlDoc, targetFeed)
         }
 
         const feedTitle = xmlDoc.querySelector("channel").querySelector("title").textContent
@@ -288,39 +375,57 @@ async function fetchRSS(targetUrl) {
             let description = item.querySelector("description").textContent;
             const guid = item.querySelector("guid").textContent;
             const pubDate = new Date(item.querySelector("pubDate").textContent);
-            const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML)
-            const feedIcon = new URL("favicon.ico",hosturl.protocol+"//"+hosturl.hostname).href;
+            const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML || xmlDoc.querySelectorAll("link")[0].attributes.href.value);
+            const feedIcon = new URL("favicon.ico",hosturl.protocol+"//"+hosturl.hostname).href ;
 
             let thumbnail = "../images/default_thumbnail.svg";
             // Extracting thumbnail
-            const tempDiv = document.createElement('div');
+            let tempDiv = document.createElement('div');
             tempDiv.innerHTML = description;
 
             // Find the first image tag
-            const img = tempDiv.querySelector('img');
+            let img = tempDiv.querySelector('img');
             if (img && img.src) {
                 thumbnail = img.src
+            } else {
+              // console.log("Last attempt to get thumbnail")
+              // Find the first image tag
+              let img = xmlDoc.getElementsByTagName('image')[0];
+              if (img && extractFirstUrl(img.innerHTML)) {
+                  thumbnail = extractFirstUrl(img.innerHTML)
+              }
             }
 
             description = removeHTML(description)
-            const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail);
-            const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,thumbnail,mobile=true);
+            const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
+            const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail,mobile=true);
 
             feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
             
+            // Store information for feeds list in sidebar
+            feedInfos[targetFeed.id] = {
+              "displayName": targetFeed.name,
+              "originalName": feedTitle,
+              "icon": feedIcon,
+              "nItems": items.length
+            }
         });
+
+
+
         return feedItems
     } catch (error) {
-        console.error('Error fetching the RSS feed:', error);
+        console.error(`Error fetching the RSS feed ( ${fetchUrl} ):`, error);
     }
 }
 
 async function loadFeeds() {
     all_feed_items = []
-    for (let i in targetUrls) {
-        let targetUrl = targetUrls[i]
-        all_feed_items = all_feed_items.concat(await fetchRSS(targetUrl))
+    for (let i in targetFeeds) {
+        let targetFeed = targetFeeds[i]
+        all_feed_items = all_feed_items.concat(await fetchRSS(targetFeed))
     }
+    localStorage.feedInfos = JSON.stringify(feedInfos)
     all_feed_items.sort(function(a,b){return b[0]-a[0]})
     const feedContainerDesktop = document.getElementById('feed-container-desktop');
     const feedContainerMobile = document.getElementById('feed-container-mobile');
@@ -333,6 +438,35 @@ async function loadFeeds() {
         feed_item = all_feed_items[i][2]
         feedContainerMobile.appendChild(feed_item);
     }
+
+    window.parent.postMessage({ type: 'populate-feeds-menu' }, '*') // Repopulate feeds menu with updated icons and feed item counts
 }
 
-document.addEventListener('DOMContentLoaded', loadFeeds);
+
+function initLoadFeeds(ids) {
+    document.getElementById("feed-container-desktop").innerHTML = `
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    `
+    document.getElementById("feed-container-mobile").innerHTML = `
+      <div class="row">
+        <div class="d-flex justify-content-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    `
+    targetFeeds = loadUrls(ids = ids)  // The argument 'ids' can be used to load items with only specific ids
+    loadFeeds()
+}
+
+window.addEventListener('message', (e) => {
+    if (e.data?.type === 'load-feeds') {
+      initLoadFeeds(e.data?.ids === undefined ? [] : JSON.parse(e.data?.ids))
+    }
+});
+
