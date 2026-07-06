@@ -230,7 +230,7 @@ function getFeedInfo(feedId) {
 }
 
 // This functions will import feeds from a provided OPML file from the user's device
-function importFeeds(opmlString) {
+function importOPML(opmlString) {
     // Parse OPML string
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(opmlString, "application/xml");
