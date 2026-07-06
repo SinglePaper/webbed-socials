@@ -22,20 +22,35 @@ function getMaxId(feedList) {
 function populateFeedsMenu(feedList) {
     feedsMenuElem.innerHTML = ""
 
+    // Add 'Home' button (show all feeds)
+    const homeBtnElem = document.createElement('ul');
+    homeBtnElem.classList.add("list-group")
+
+    homeBtnElem.innerHTML += `
+        <li class="list-group-item d-flex justify-content-left align-items-center border-0">
+                <svg class="me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 1em; height: 1em;"><path fill="currentColor" d="M19.469 12.594l3.625 3.313c0.438 0.406 0.313 0.719-0.281 0.719h-2.719v8.656c0 0.594-0.5 1.125-1.094 1.125h-4.719v-6.063c0-0.594-0.531-1.125-1.125-1.125h-2.969c-0.594 0-1.125 0.531-1.125 1.125v6.063h-4.719c-0.594 0-1.125-0.531-1.125-1.125v-8.656h-2.688c-0.594 0-0.719-0.313-0.281-0.719l10.594-9.625c0.438-0.406 1.188-0.406 1.656 0l2.406 2.156v-1.719c0-0.594 0.531-1.125 1.125-1.125h2.344c0.594 0 1.094 0.531 1.094 1.125v5.875z"/></svg>
+                <a onclick="loadSubsetFeeds()" style="cursor:pointer">All Feeds</a>
+        </li>
+    `
+
     // Add folders 
     const folderElem = document.createElement('div');
     folderElem.classList.add("accordion", "accordion-flush", "mb-1", "w-100")
-    console.log(feedList.folders)
+
     for (let i in feedList.folders) {
         let folder = feedList.folders[i]
 
         folderHTML = `
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#${folder.name.replace(/\W/g, "")+"_"+String(folder.id)}" aria-expanded="false" aria-controls="flush-collapseOne">
+                <button id="${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}" class="accordion-button collapsed shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#${folder.name.replace(/\W/g, "")+"_"+String(folder.id)}" aria-expanded="false" aria-controls="flush-collapseOne">
                     <div class="flex-grow-1">${folder.name}</div>
-                    <a class="me-2 flew-shrink-0" href="#">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" height="1.3em" width="1.3em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><g transform="translate(0,0) scale(0.046875)"><path fill="currentColor" d="M535.6 85.7C513.7 63.8 478.3 63.8 456.4 85.7L432 110.1L529.9 208L554.3 183.6C576.2 161.7 576.2 126.3 554.3 104.4L535.6 85.7zM236.4 305.7C230.3 311.8 225.6 319.3 222.9 327.6L193.3 416.4C190.4 425 192.7 434.5 199.1 441C205.5 447.5 215 449.7 223.7 446.8L312.5 417.2C320.7 414.5 328.2 409.8 334.4 403.7L496 241.9L398.1 144L236.4 305.7zM160 128C107 128 64 171 64 224L64 480C64 533 107 576 160 576L416 576C469 576 512 533 512 480L512 384C512 366.3 497.7 352 480 352C462.3 352 448 366.3 448 384L448 480C448 497.7 433.7 512 416 512L160 512C142.3 512 128 497.7 128 480L128 224C128 206.3 142.3 192 160 192L256 192C273.7 192 288 177.7 288 160C288 142.3 273.7 128 256 128L160 128z"/></g></svg>
+                    <a class="flex-shrink-0 ms-2" 
+                        onclick="updateFolderModal(${folder.id}); console.log('Edit folder!')" 
+                        onmouseenter="document.getElementById('${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}').setAttribute('data-bs-toggle', '')"
+                        onmouseleave="document.getElementById('${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}').setAttribute('data-bs-toggle', 'collapse')"
+                    data-bs-toggle="modal" data-bs-target="#folderModal" style="cursor:pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
                     </a>
                 </button>
             </h2>
@@ -45,22 +60,23 @@ function populateFeedsMenu(feedList) {
 
         for (let j in folder.feeds) {
             let feed = folder.feeds[j]
+            let feedInfo = getFeedInfo(feed.id)
             
             folderHTML += `
                         <li class="list-group-item d-flex justify-content-between align-items-center border-0">
                             <img
-                                src="${getFeedIcon(feed.url)}"
+                                src="${feedInfo.icon}"
                                 class="me-2"
                                 style="width:1rem; height:auto; top:0; left:0;"
                                 alt=""
                             >
                             <div class="flex-grow-1" style="text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical;">
-                                <a>${feed.name}</a>
+                                <a onclick="loadSubsetFeeds([${feed.id}])" style="cursor:pointer">${feed.name}</a>
                             </div>
-                            <a class="flex-shrink-0" href="#">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" height="1.3rem" width="1.3rem"  focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><g transform="translate(0,0) scale(0.046875)"><path fill="currentColor" d="M535.6 85.7C513.7 63.8 478.3 63.8 456.4 85.7L432 110.1L529.9 208L554.3 183.6C576.2 161.7 576.2 126.3 554.3 104.4L535.6 85.7zM236.4 305.7C230.3 311.8 225.6 319.3 222.9 327.6L193.3 416.4C190.4 425 192.7 434.5 199.1 441C205.5 447.5 215 449.7 223.7 446.8L312.5 417.2C320.7 414.5 328.2 409.8 334.4 403.7L496 241.9L398.1 144L236.4 305.7zM160 128C107 128 64 171 64 224L64 480C64 533 107 576 160 576L416 576C469 576 512 533 512 480L512 384C512 366.3 497.7 352 480 352C462.3 352 448 366.3 448 384L448 480C448 497.7 433.7 512 416 512L160 512C142.3 512 128 497.7 128 480L128 224C128 206.3 142.3 192 160 192L256 192C273.7 192 288 177.7 288 160C288 142.3 273.7 128 256 128L160 128z"/></g></svg>
+                            <span class="badge text-bg-primary rounded-pill  ${feedInfo.nItems == 0 || !feedInfo.nItems ? "d-none" : ""}">${feedInfo.nItems}</span>
+                            <a class="flex-shrink-0 ms-2" onclick="updateFeedModal(${feed.id})" data-bs-toggle="modal" data-bs-target="#feedModal" style="cursor:pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
                             </a>
-                            <span class="badge text-bg-primary rounded-pill ms-2">${getFeedLength(feed.url)}</span>
                         </li>
             `
         }
@@ -79,36 +95,138 @@ function populateFeedsMenu(feedList) {
     rootElem.classList.add("list-group")
     for (let i in feedList.root) {
         let feed = feedList.root[i]
+        let feedInfo = getFeedInfo(feed.id)
+
         rootElem.innerHTML += `
             <li class="list-group-item d-flex justify-content-between align-items-center border-0">
                 <img
-                  src="${getFeedIcon(feed.url)}"
+                  src="${feedInfo.icon}"
                   class="me-2"
                   style="width:1rem; height:auto; top:0; left:0;"
                   alt=""
                 >
                 <div class="flex-grow-1" style="text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical;">
-                  <a>${feed.name}</a>
+                  <a onclick="loadSubsetFeeds([${feed.id}])" style="cursor:pointer">${feedInfo.displayName}</a>
                 </div>
-                <a class="flex-shrink-0" href="#">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" height="1.3em" width="1.3em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><g transform="translate(0,0) scale(0.046875)"><path fill="currentColor" d="M535.6 85.7C513.7 63.8 478.3 63.8 456.4 85.7L432 110.1L529.9 208L554.3 183.6C576.2 161.7 576.2 126.3 554.3 104.4L535.6 85.7zM236.4 305.7C230.3 311.8 225.6 319.3 222.9 327.6L193.3 416.4C190.4 425 192.7 434.5 199.1 441C205.5 447.5 215 449.7 223.7 446.8L312.5 417.2C320.7 414.5 328.2 409.8 334.4 403.7L496 241.9L398.1 144L236.4 305.7zM160 128C107 128 64 171 64 224L64 480C64 533 107 576 160 576L416 576C469 576 512 533 512 480L512 384C512 366.3 497.7 352 480 352C462.3 352 448 366.3 448 384L448 480C448 497.7 433.7 512 416 512L160 512C142.3 512 128 497.7 128 480L128 224C128 206.3 142.3 192 160 192L256 192C273.7 192 288 177.7 288 160C288 142.3 273.7 128 256 128L160 128z"/></g></svg>
+                <span class="badge text-bg-primary rounded-pill ${feedInfo.nItems == 0 ? "d-none" : ""}">${feedInfo.nItems}</span>
+                <a onclick="updateFeedModal(${feed.id})" class="flex-shrink-0 ms-2" data-bs-toggle="modal" data-bs-target="#feedModal" style="cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
                 </a>
-                <span class="badge text-bg-primary rounded-pill ms-2">${getFeedLength(feed.url)}</span>
             </li>
         `
     }
 
+    feedsMenuElem.appendChild(homeBtnElem)
     feedsMenuElem.appendChild(folderElem)
     feedsMenuElem.appendChild(rootElem)
 }
 
-// Fetches favicon of a feed URL
-function getFeedIcon(feedURL) {
-    return "../images/favicon_yt.png" // Not implemented
+// Updates feed modal when menu is opened
+function updateFeedModal(id) {
+    let feedInfo = getFeedInfo(id) // displayName, originalName, icon, nItems
+    console.log(feedInfo)
+    let feedModalElem = document.getElementById("feedModal")
+    let feedModalLabelElem = document.getElementById("feedModalLabel")
+    let feedModalBodyElem = document.getElementById("feedModalBody")
+    feedModalLabelElem.textContent = feedInfo.originalName
 }
 
-function getFeedLength(feedURL) {
-    return 14 // Not implemented
+// Updates feed modal when menu is opened
+function updateFolderModal(id) {
+    return
+}
+
+function getFeed(targetId, copy = false) {
+  const feed =
+    feedList.root.find(f => f.id === targetId) ??
+    feedList.folders.flatMap(folder => folder.feeds).find(f => f.id === targetId);
+
+  if (!feed) return null;
+  return copy ? { ...feed } : feed;
+}
+
+function getFolder(targetId, copy = false) {
+  const folder =
+    feedList.folders.find(f => f.id === targetId);
+
+  if (!folder) return null;
+  return copy ? { ...folder } : folder;
+}
+
+function deleteFeed(targetId) {
+    let deletedFeed = getFeed(targetId, copy=true)
+    feedList.root = feedList.root.filter(feed => feed.id !== targetId);
+    feedList.folders = feedList.folders.map(folder => ({
+    ...folder, feeds: folder.feeds.filter(feed => feed.id !== targetId)
+    }));
+
+    localStorage.setItem("feedList", JSON.stringify(feedList)) 
+    populateFeedsMenu(feedList)
+    iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
+    return deletedFeed
+}
+
+function addFeed(feed, folder = -1) { // Feed is a dictionary containing name, url, and id)
+    if (folder === -1) {
+        feedList.root.push(feed);
+    } else {
+        const selectedFolder = feedList.folders.find(f => f.id === folder);
+        console.log("Failed to add feed to non-existent folder.")
+        if (!selectedFolder) return false;
+
+        selectedFolder.feeds.push(feed);
+    }
+
+    // Refresh feeds and menu
+    localStorage.setItem("feedList", JSON.stringify(feedList)) 
+    populateFeedsMenu(feedList)
+    iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
+    return true
+}
+
+function moveFeed(targetId, folder = -1) {
+    if (folder !== -1) {
+        const selectedFolder = feedList.folders.find(f => f.id === folder);
+        console.log("Failed to move feed to non-existent folder.")
+        if (!selectedFolder) return false;
+    }
+    let deletedFeed = deleteFeed(targetId)
+    addFeed(deletedFeed, folder)
+    return true
+}
+
+function addNewFeed(url, folder = -1) {
+
+}
+
+function addNewFolder(name) {
+    feedList.folders.push({
+        id: getMaxId(feedList),
+        name: name,
+        feeds: []
+    })
+    localStorage.setItem("feedList", JSON.stringify(feedList)) 
+    populateFeedsMenu(feedList)
+    return true
+}
+
+function deleteFolder(targetId) {
+    let deletedFolder = getFolder(targetId, copy=true)
+    feedList.folders = feedList.folders.filter(folder => folder.id !== targetId)
+
+    localStorage.setItem("feedList", JSON.stringify(feedList)) 
+    populateFeedsMenu(feedList)
+    iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
+    return deletedFolder
+}
+
+// Fetches favicon of a feed URL
+function getFeedInfo(feedId) {
+    if (localStorage.feedInfos === undefined || !(feedId in JSON.parse(localStorage.feedInfos))) {
+        return ["", 0]
+    }
+    let feedInfo = JSON.parse(localStorage.feedInfos) 
+    return feedInfo[feedId] // Not implemented
 }
 
 // This functions will import feeds from a provided OPML file from the user's device
@@ -182,22 +300,18 @@ function saveOPML(userID) {
 
 }
 
-
-let opmlString = `<?xml version="1.0" encoding="UTF-8"?>
-<opml version="2.0">
-  <head>
-    <title>Subscriptions</title>
-  </head>
-  <body>
-    <outline title="Peak Content" text="Peak Content">
-      <outline title="Benn Jordan" text="Benn Jordan" type="rss" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCshObcm-nLhbu8MY50EZ5Ng" htmlUrl="https://www.youtube.com/channel/UCshObcm-nLhbu8MY50EZ5Ng"/>
-      <outline title="KickThePj" text="KickThePj" type="rss" xmlUrl="https://www.youtube.com/feeds/videos.xml?channel_id=UCavTVjugW1OejDAq0aDzdMw" htmlUrl="https://www.youtube.com/channel/UCavTVjugW1OejDAq0aDzdMw"/>
-    </outline>
-  </body>
-</opml>
-`
+function loadSubsetFeeds(ids) {
+    iframeElem.contentWindow.postMessage({ type: 'load-feeds', ids: JSON.stringify(ids) }, '*');
+    document.getElementById("menu-btn-close").click()
+}
 
 iframeElem.addEventListener('load', () => {
     populateFeedsMenu(feedList)
     iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
+});
+
+window.addEventListener('message', (e) => {
+    if (e.data?.type === 'populate-feeds-menu') {
+      populateFeedsMenu(feedList)
+    }
 });
