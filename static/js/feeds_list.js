@@ -45,7 +45,7 @@ function populateFeedsMenu(feedList) {
             <h2 class="accordion-header">
                 <button id="${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}" class="accordion-button collapsed shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#${folder.name.replace(/\W/g, "")+"_"+String(folder.id)}" aria-expanded="false" aria-controls="flush-collapseOne">
                     <div class="flex-grow-1">${folder.name}</div>
-                    <a class="flex-shrink-0 ms-2" 
+                    <a class="flex-shrink-0 me-2" 
                         onclick="updateFolderModal(${folder.id}); console.log('Edit folder!')" 
                         onmouseenter="document.getElementById('${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}').setAttribute('data-bs-toggle', '')"
                         onmouseleave="document.getElementById('${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}').setAttribute('data-bs-toggle', 'collapse')"
@@ -230,7 +230,7 @@ function getFeedInfo(feedId) {
 }
 
 // This functions will import feeds from a provided OPML file from the user's device
-function importFeeds(opmlString) {
+function importOPML(opmlString) {
     // Parse OPML string
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(opmlString, "application/xml");
