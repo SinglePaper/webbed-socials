@@ -384,7 +384,10 @@ async function fetchRSS(targetFeed) {
 
         items.forEach(item => {
             const title = item.querySelector("title").textContent;
-            const link = item.querySelector("link").textContent;
+            let link = item.querySelector("link").textContent;
+            if (link.length == 0) {
+              link = item.querySelector("link").attributes.href.value
+            }
             let description;
             try {
               description = item.querySelector("description").textContent;
