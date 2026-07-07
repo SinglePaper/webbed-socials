@@ -198,6 +198,11 @@ function deleteFeed(targetId) {
     return deletedFeed
 }
 
+function createFeed(url) {
+    let newFeed = {}
+    return newFeed
+}
+
 function addFeed(feed, folder = -1) { // Feed is a dictionary containing name, url, and id)
     if (folder === -1) {
         feedList.root.push(feed);

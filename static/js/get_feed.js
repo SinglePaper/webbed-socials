@@ -349,7 +349,7 @@ async function fetchRSS(targetFeed) {
         
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(data, "application/xml");
-
+        console.log(xmlDoc)
         // console.log('Parsed XML:', xmlDoc); // Debugging 3: Log the parsed XML
 
         // YouTube is weird, so we'll handle it in a separate function.
@@ -369,17 +369,40 @@ async function fetchRSS(targetFeed) {
             return handleRDF(xmlDoc, targetFeed)
         }
 
-        const feedTitle = xmlDoc.querySelector("channel").querySelector("title").textContent
-        
-        const items = xmlDoc.querySelectorAll("item");
+        let feedTitle
+        try {
+          feedTitle = xmlDoc.querySelector("channel").querySelector("title").textContent
+        } catch (error) {
+          feedTitle = xmlDoc.querySelector("feed").querySelector("title").textContent
+        }
+        console.log(xmlDoc.querySelectorAll("item"))
+        let items = xmlDoc.querySelectorAll("item");
+        if (items.length == 0) {
+          items = xmlDoc.querySelectorAll("entry");
+        }
         let feedItems = [];
 
         items.forEach(item => {
             const title = item.querySelector("title").textContent;
             const link = item.querySelector("link").textContent;
-            let description = item.querySelector("description").textContent;
-            const guid = item.querySelector("guid").textContent;
-            const pubDate = new Date(item.querySelector("pubDate").textContent);
+            let description;
+            try {
+              description = item.querySelector("description").textContent;
+            } catch (error) {
+              description = item.querySelector("summary").textContent;
+            }
+            let guid;
+            try {
+              guid = item.querySelector("guid").textContent;
+            } catch (error) {
+              guid = item.querySelector("id").textContent;
+            }
+            let pubDate;
+            try {
+              pubDate = new Date(item.querySelector("pubDate").textContent);
+            } catch (error) {
+              pubDate = new Date(item.querySelector("published").textContent);
+            }
             const hosturl = new URL(xmlDoc.querySelectorAll("link")[0].innerHTML || xmlDoc.querySelectorAll("link")[0].attributes.href.value);
             const feedIcon = new URL("favicon.ico",hosturl.protocol+"//"+hosturl.hostname).href ;
 
