@@ -107,12 +107,14 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,f
         <div class="text-start position-relative">
           <a href="${link}" target="_blank" label="${guid}">
             <div class="position-relative">
-              <img
-                src="${thumbnail}"
-                class="w-100 shadow-1-strong rounded mb-2 img-fluid"
-                style="display:block;"
-                alt=""
-              >
+              <div class="ratio ratio-16x9 mb-2">
+                <img
+                  src="${thumbnail}"
+                  class="w-100 shadow-1-strong rounded img-fluid"
+                  style="display:block; object-fit: cover"
+                  alt=""
+                >
+              </div>
 
               <img
                 src="${feedIcon}"
@@ -134,13 +136,14 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,f
         <div class="col-6">
           <a href="${link}" target="_blank" label="${guid}">
             <div class="position-relative">
-              <img
-                src="${thumbnail}"
-                class="w-100 shadow-1-strong rounded mb-2 img-fluid"
-                style="display:block;"
-                alt=""
-              >
-
+              <div class="ratio ratio-16x9 mb-2">
+                <img
+                  src="${thumbnail}"
+                  class="w-100 shadow-1-strong rounded img-fluid"
+                  style="display:block; object-fit: cover"
+                  alt=""
+                >
+              </div>
               <img
                 src="${feedIcon}"
                 class="position-absolute m-2 img-fluid"

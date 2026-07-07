@@ -49,7 +49,7 @@ function populateFeedsMenu(feedList) {
                         onclick="updateFolderModal(${folder.id}); console.log('Edit folder!')" 
                         onmouseenter="document.getElementById('${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}').setAttribute('data-bs-toggle', '')"
                         onmouseleave="document.getElementById('${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}').setAttribute('data-bs-toggle', 'collapse')"
-                    data-bs-toggle="modal" data-bs-target="#folderModal" style="cursor:pointer">
+                    data-bs-toggle="modal" data-bs-target="#editFolderModal" style="cursor:pointer">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
                     </a>
                 </button>
@@ -74,13 +74,12 @@ function populateFeedsMenu(feedList) {
                                 <a onclick="loadSubsetFeeds([${feed.id}])" style="cursor:pointer">${feed.name}</a>
                             </div>
                             <span class="badge text-bg-primary rounded-pill  ${feedInfo.nItems == 0 || !feedInfo.nItems ? "d-none" : ""}">${feedInfo.nItems}</span>
-                            <a class="flex-shrink-0 ms-2" onclick="updateFeedModal(${feed.id})" data-bs-toggle="modal" data-bs-target="#feedModal" style="cursor:pointer">
+                            <a class="flex-shrink-0 ms-2" onclick="updateFeedModal(${feed.id})" data-bs-toggle="modal" data-bs-target="#editFeedModal" style="cursor:pointer">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
                             </a>
                         </li>
             `
         }
-
         folderHTML += `
                 </ul>
             </div>
@@ -109,31 +108,64 @@ function populateFeedsMenu(feedList) {
                   <a onclick="loadSubsetFeeds([${feed.id}])" style="cursor:pointer">${feedInfo.displayName}</a>
                 </div>
                 <span class="badge text-bg-primary rounded-pill ${feedInfo.nItems == 0 ? "d-none" : ""}">${feedInfo.nItems}</span>
-                <a onclick="updateFeedModal(${feed.id})" class="flex-shrink-0 ms-2" data-bs-toggle="modal" data-bs-target="#feedModal" style="cursor:pointer">
+                <a onclick="updateFeedModal(${feed.id})" class="flex-shrink-0 ms-2" data-bs-toggle="modal" data-bs-target="#editFeedModal" style="cursor:pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
                 </a>
             </li>
         `
     }
 
+    // Add 'add feed' button
+    const addFeedBtnElem = document.createElement('ul');
+    addFeedBtnElem.classList.add("list-group")
+
+    addFeedBtnElem.innerHTML += `
+        <li class="list-group-item d-flex justify-content-left align-items-center border-0">
+                <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="4 2 16 20"><path fill="currentColor" d="m19.74 7.33l-4.44-5a1 1 0 0 0-.74-.33h-8A2.53 2.53 0 0 0 4 4.5v15A2.53 2.53 0 0 0 6.56 22h10.88A2.53 2.53 0 0 0 20 19.5V8a1 1 0 0 0-.26-.67M14 15h-1v1a1 1 0 0 1-2 0v-1h-1a1 1 0 0 1 0-2h1v-1a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2m.71-7a.79.79 0 0 1-.71-.85V4l3.74 4Z"/></svg>
+                <a  data-bs-toggle="modal" data-bs-target="#addFeedModal" style="cursor:pointer">Add Feed</a>
+        </li>
+    `
+
+    // Add 'add folder' button
+    const addFolderBtnElem = document.createElement('ul');
+    addFolderBtnElem.classList.add("list-group")
+
+    addFolderBtnElem.innerHTML += `
+        <li class="list-group-item d-flex justify-content-left align-items-center border-0">
+                <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="4 2 16 20"><path fill="currentColor" d="M19.5 7.05h-7L9.87 3.87a1 1 0 0 0-.77-.37H4.5A2.47 2.47 0 0 0 2 5.93v12.14a2.47 2.47 0 0 0 2.5 2.43h15a2.47 2.47 0 0 0 2.5-2.43V9.48a2.47 2.47 0 0 0-2.5-2.43M14 15h-1v1a1 1 0 0 1-2 0v-1h-1a1 1 0 0 1 0-2h1v-1a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2"/></svg>
+                <a  data-bs-toggle="modal" data-bs-target="#addFolderModal" style="cursor:pointer">Add Folder</a>
+        </li>
+    `
+
     feedsMenuElem.appendChild(homeBtnElem)
     feedsMenuElem.appendChild(folderElem)
     feedsMenuElem.appendChild(rootElem)
+    feedsMenuElem.appendChild(addFeedBtnElem)
+    feedsMenuElem.appendChild(addFolderBtnElem)
 }
 
 // Updates feed modal when menu is opened
 function updateFeedModal(id) {
     let feedInfo = getFeedInfo(id) // displayName, originalName, icon, nItems
     console.log(feedInfo)
-    let feedModalElem = document.getElementById("feedModal")
-    let feedModalLabelElem = document.getElementById("feedModalLabel")
-    let feedModalBodyElem = document.getElementById("feedModalBody")
+    let feedModalElem = document.getElementById("editFeedModal")
+    let feedModalLabelElem = document.getElementById("editFeedModalLabel")
+    let feedModalBodyElem = document.getElementById("editFeedModalBody")
     feedModalLabelElem.textContent = feedInfo.originalName
+    feedModalElem.setAttribute("label", id)
+    console.log("Opened modal for feed", id)
 }
 
 // Updates feed modal when menu is opened
 function updateFolderModal(id) {
-    return
+    let folderInfo = getFolder(id) // id, name, feeds
+    console.log(folderInfo)
+    let folderModalElem = document.getElementById("editFolderModal")
+    let folderModalLabelElem = document.getElementById("editFolderModalLabel")
+    let folderModalBodyElem = document.getElementById("editFolderModalBody")
+    folderModalLabelElem.textContent = folderInfo.name
+    folderModalElem.setAttribute("label", id)
+    console.log("Opened modal for folder", id)
 }
 
 function getFeed(targetId, copy = false) {
@@ -154,15 +186,15 @@ function getFolder(targetId, copy = false) {
 }
 
 function deleteFeed(targetId) {
+    targetId = parseInt(targetId)
+    console.log("Deleting feed", targetId)
     let deletedFeed = getFeed(targetId, copy=true)
     feedList.root = feedList.root.filter(feed => feed.id !== targetId);
     feedList.folders = feedList.folders.map(folder => ({
     ...folder, feeds: folder.feeds.filter(feed => feed.id !== targetId)
     }));
 
-    localStorage.setItem("feedList", JSON.stringify(feedList)) 
-    populateFeedsMenu(feedList)
-    iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
+    refreshFeeds()
     return deletedFeed
 }
 
@@ -178,9 +210,7 @@ function addFeed(feed, folder = -1) { // Feed is a dictionary containing name, u
     }
 
     // Refresh feeds and menu
-    localStorage.setItem("feedList", JSON.stringify(feedList)) 
-    populateFeedsMenu(feedList)
-    iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
+    refreshFeeds()
     return true
 }
 
@@ -211,13 +241,19 @@ function addNewFolder(name) {
 }
 
 function deleteFolder(targetId) {
+    targetId = parseInt(targetId)
+    console.log("Deleting folder", targetId)
     let deletedFolder = getFolder(targetId, copy=true)
     feedList.folders = feedList.folders.filter(folder => folder.id !== targetId)
 
+    refreshFeeds()
+    return deletedFolder
+}
+
+function refreshFeeds() {
     localStorage.setItem("feedList", JSON.stringify(feedList)) 
     populateFeedsMenu(feedList)
     iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
-    return deletedFolder
 }
 
 // Fetches favicon of a feed URL
@@ -279,9 +315,7 @@ function importOPML(opmlString) {
             feedList.folders.push(folder)
         }
     }
-    localStorage.setItem("feedList", JSON.stringify(feedList)) 
-    populateFeedsMenu(feedList)
-    iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
+    refreshFeeds()
 }
 
 
@@ -306,8 +340,7 @@ function loadSubsetFeeds(ids) {
 }
 
 iframeElem.addEventListener('load', () => {
-    populateFeedsMenu(feedList)
-    iframeElem.contentWindow.postMessage({ type: 'load-feeds' }, '*');
+    refreshFeeds()
 });
 
 window.addEventListener('message', (e) => {
