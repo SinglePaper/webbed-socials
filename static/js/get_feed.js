@@ -131,8 +131,8 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,f
 
     let PHONE_CARD = `
     <div class="row mb-3">
-      <a href="${link}" target="_blank" label="${guid}">
         <div class="col-6">
+          <a href="${link}" target="_blank" label="${guid}">
             <div class="position-relative">
               <img
                 src="${thumbnail}"
@@ -148,14 +148,16 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,f
                 alt=""
               >
             </div>
+          </a>
         </div>
         <div class="col-6">
-          <p style="text-align:left; text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical;">
-            <b>${title}</b><br>
-            <small>${description}</small>
-          </p>
+          <a href="${link}" target="_blank" label="${guid}">
+            <p style="text-align:left; text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical;">
+              <b>${title}</b><br>
+              <small>${description}</small>
+            </p>
+          </a>
         </div>
-      </a>
       <small class="text-body-secondary" style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
         <a onclick="initLoadFeeds(ids=[${feedId}])" style="cursor:pointer">${shortenString(feedTitle, 15)}</a> • ${timeSince(pubDate)} ago
       </small>
