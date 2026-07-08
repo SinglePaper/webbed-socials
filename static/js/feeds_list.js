@@ -261,7 +261,7 @@ function populateFeedsMenu(feedList) {
 // Updates feed modal when menu is opened
 function updateFeedModal(id) {
     let feedInfo = getFeedInfo(id) // displayName, originalName, icon, nItems
-    console.log(feedInfo)
+    // console.log(feedInfo)
     let feedModalElem = document.getElementById("editFeedModal")
     let feedModalLabelElem = document.getElementById("editFeedModalLabel")
     let feedModalBodyElem = document.getElementById("editFeedModalBody")
@@ -282,7 +282,7 @@ function updateAddFeedForm(source, btn) {
 // Updates feed modal when menu is opened
 function updateFolderModal(id) {
     let folderInfo = getFolder(id) // id, name, feeds
-    console.log(folderInfo)
+    // console.log(folderInfo)
     let folderModalElem = document.getElementById("editFolderModal")
     let folderModalLabelElem = document.getElementById("editFolderModalLabel")
     let folderModalNameElem = document.getElementById("editFolderNameInput")

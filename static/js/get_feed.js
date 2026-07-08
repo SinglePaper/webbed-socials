@@ -3,7 +3,7 @@ let feedInfos = {}
 
 function loadUrls(ids=[]) {
   let feedList = JSON.parse(localStorage.feedList)
-  console.log(feedList)
+  // console.log(feedList)
   if (feedList.folders.length === 0 && feedList.root.length === 0) return []
   let feeds = [
     ...feedList.folders.flatMap(f => f.feeds),
@@ -338,7 +338,7 @@ function handleRDF(xmlDoc, targetFeed) {
 async function fetchRSS(targetFeed) {
     const protocol = window.location.protocol;
     const host = window.location.host;
-    const fetchUrl = `${protocol}//${host}/rss-proxy?url=${encodeURIComponent(targetFeed.url)}`;
+    const fetchUrl = `${protocol}//${host}/api/rss-proxy?url=${encodeURIComponent(targetFeed.url)}`;
     // console.log(fetchUrl)
     try {
         // console.log('Fetching URL:', fetchUrl); // Debugging 1: Log the request URL
@@ -349,7 +349,7 @@ async function fetchRSS(targetFeed) {
         
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(data, "application/xml");
-        console.log(xmlDoc)
+        // console.log(xmlDoc)
         // console.log('Parsed XML:', xmlDoc); // Debugging 3: Log the parsed XML
 
         // YouTube is weird, so we'll handle it in a separate function.
@@ -375,7 +375,7 @@ async function fetchRSS(targetFeed) {
         } catch (error) {
           feedTitle = xmlDoc.querySelector("feed").querySelector("title").textContent
         }
-        console.log(xmlDoc.querySelectorAll("item"))
+        // console.log(xmlDoc.querySelectorAll("item"))
         let items = xmlDoc.querySelectorAll("item");
         if (items.length == 0) {
           items = xmlDoc.querySelectorAll("entry");
