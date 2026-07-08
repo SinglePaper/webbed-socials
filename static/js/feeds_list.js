@@ -286,7 +286,7 @@ function updateFolderModal(id) {
     let folderModalElem = document.getElementById("editFolderModal")
     let folderModalLabelElem = document.getElementById("editFolderModalLabel")
     let folderModalNameElem = document.getElementById("editFolderNameInput")
-    folderModalNameElem.value = folderInfo.name + "&lt;"
+    folderModalNameElem.value = folderInfo.name
     folderModalElem.setAttribute("label", id)
     console.log("Opened modal for folder", id)
 }
