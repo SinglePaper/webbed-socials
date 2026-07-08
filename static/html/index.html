@@ -54,7 +54,52 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div id="addFeedModalBody" class="modal-body">
-              ...
+            <label for="sourcePicker" class="text-center w-100 mb-2">Pick a source</label>
+            <div id="sourcePicker" class="d-flex justify-content-center gap-3 w-100">
+              <button class="btn source-btn btn-outline-danger rounded-circle d-inline-flex align-items-center justify-content-center overflow-hidden p-2"
+                  style="width:48px;height:48px;"
+                  onclick="updateAddFeedForm('youtube', this)">
+                  <img src="../images/favicon_yt.png" class="d-block w-100 h-100 object-fit-contain" alt="Logo">
+              </button>
+              <button class="btn source-btn btn-outline-warning rounded-circle d-inline-flex align-items-center justify-content-center overflow-hidden p-2"
+                  style="width:48px;height:48px;"
+                  onclick="updateAddFeedForm('dropout', this)">
+                  <img src="../images/favicon_dropout.png" class="rounded-circle d-block w-100 h-100 object-fit-contain" alt="Logo">
+              </button>
+              <button class="btn source-btn btn-outline-primary rounded-circle d-inline-flex align-items-center justify-content-center overflow-hidden p-2"
+                  style="width:48px;height:48px;"
+                  onclick="updateAddFeedForm('nebula', this)">
+                  <img src="../images/favicon_nebula.png" class="d-block w-100 h-100 object-fit-contain" alt="Logo">
+              </button>
+              <button class="btn source-btn btn-outline-contrast rounded-circle d-inline-flex align-items-center justify-content-center overflow-hidden p-2"
+                  style="width:48px;height:48px;"
+                  onclick="updateAddFeedForm('twitch', this)">
+                  <img src="../images/favicon_twitch.png" class="d-block w-100 h-100 object-fit-contain" alt="Logo">
+              </button>
+              <button class="btn source-btn btn-outline-info rounded-circle d-inline-flex align-items-center justify-content-center overflow-hidden p-2"
+                  style="width:48px;height:48px;"
+                  onclick="updateAddFeedForm('bluesky', this)">
+                  <img src="../images/favicon_bsky.png" class="d-block w-100 h-100 object-fit-contain" alt="Logo">
+              </button>             
+              <button class="btn source-btn btn-outline-contrast rounded-circle d-inline-flex align-items-center justify-content-center overflow-hidden p-2"
+                  style="width:48px;height:48px;"
+                  onclick="updateAddFeedForm('other', this)">
+                  <large><b>...</b></large>
+              </button>
+            </div>
+            <form id="addFeedForm" hidden>
+              <div class="form-group mt-3">
+                <label for="newFolderNameInput">Feed URL</label>
+                <input class="form-control"  
+                  placeholder="https://...">
+              </div>
+            </form>
+
+            <!-- <button type="button" class="btn w-100 mb-2 btn-outline-danger">YouTube</button>
+            <button type="button" class="btn w-100 mb-2 btn-outline-warning">Dropout</button>
+            <button type="button" class="btn w-100 mb-2 btn-outline-primary">Nebula</button>
+            <button type="button" class="btn w-100 mb-2 btn-outline-info">Bluesky</button>
+            <button type="button" class="btn w-100 btn-outline-secondary">Other</button> -->
           </div>
           <div class="modal-footer">
               <button type="button" class="btn btn-danger">Cancel</button>
@@ -92,11 +137,18 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div id="addFolderModalBody" class="modal-body">
-              ...
+            <form>
+              <div class="form-group">
+                <!-- <label for="newFolderNameInput">Folder name</label> -->
+                <input class="form-control" 
+                  onkeyup="document.getElementById('addFolderBtn').disabled = (document.getElementById('newFolderNameInput').value.length == 0)" 
+                  id="newFolderNameInput" placeholder="Folder name">
+              </div>
+            </form>
           </div>
           <div class="modal-footer">
               <button type="button" data-bs-dismiss="modal" class="btn btn-danger">Cancel</button>
-              <button type="button" data-bs-dismiss="modal" class="btn btn-primary">Add</button>
+              <button type="button" id="addFolderBtn" onclick="addNewFolder(document.getElementById('newFolderNameInput').value)" data-bs-dismiss="modal" class="btn btn-primary">Add</button>
           </div>
           </div>
       </div>
@@ -111,11 +163,18 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div id="editFolderModalBody" class="modal-body">
-              ...
+            <form>
+              <div class="form-group">
+                <input class="form-control" type="text"
+                  onkeyup="document.getElementById('editFolderBtn').disabled = (document.getElementById('editFolderNameInput').value.length == 0)" 
+                  id="editFolderNameInput" 
+                  placeholder="Folder name">
+              </div>
+            </form>
           </div>
           <div class="modal-footer">
               <button type="button" data-bs-dismiss="modal" onclick="deleteFolder(document.getElementById('editFolderModal').getAttribute('label'))" class="btn btn-danger">Delete</button>
-              <button type="button" data-bs-dismiss="modal" class="btn btn-primary">Save</button>
+              <button type="button" id="editFolderBtn" onclick="editFolder(document.getElementById('editFolderModal').getAttribute('label'), document.getElementById('editFolderNameInput').value)" data-bs-dismiss="modal" class="btn btn-primary">Save</button>
           </div>
           </div>
       </div>
@@ -149,6 +208,7 @@
     <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="../js/set_color_mode.js"></script>
     <script src="../js/feeds_list.js"></script>
+    <script src="../js/new_feeds_folders.js"></script>
     <script src="../js/opml.js"></script>
     <script>
       const frame = document.getElementById('frame');

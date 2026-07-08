@@ -18,131 +18,245 @@ function getMaxId(feedList) {
   );
 }
 
-// This function will lookup the feeds stored on the device and populate the sidebar with feeds and folders
-function populateFeedsMenu(feedList) {
-    feedsMenuElem.innerHTML = ""
-
-    // Add 'Home' button (show all feeds)
-    const homeBtnElem = document.createElement('ul');
-    homeBtnElem.classList.add("list-group")
-
-    homeBtnElem.innerHTML += `
-        <li class="list-group-item d-flex justify-content-left align-items-center border-0">
-                <svg class="me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 1em; height: 1em;"><path fill="currentColor" d="M19.469 12.594l3.625 3.313c0.438 0.406 0.313 0.719-0.281 0.719h-2.719v8.656c0 0.594-0.5 1.125-1.094 1.125h-4.719v-6.063c0-0.594-0.531-1.125-1.125-1.125h-2.969c-0.594 0-1.125 0.531-1.125 1.125v6.063h-4.719c-0.594 0-1.125-0.531-1.125-1.125v-8.656h-2.688c-0.594 0-0.719-0.313-0.281-0.719l10.594-9.625c0.438-0.406 1.188-0.406 1.656 0l2.406 2.156v-1.719c0-0.594 0.531-1.125 1.125-1.125h2.344c0.594 0 1.094 0.531 1.094 1.125v5.875z"/></svg>
-                <a onclick="loadSubsetFeeds()" style="cursor:pointer">All Feeds</a>
-        </li>
-    `
-
-    // Add folders 
-    const folderElem = document.createElement('div');
-    folderElem.classList.add("accordion", "accordion-flush", "mb-1", "w-100")
-
-    for (let i in feedList.folders) {
-        let folder = feedList.folders[i]
-
-        folderHTML = `
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button id="${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}" class="accordion-button collapsed shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#${folder.name.replace(/\W/g, "")+"_"+String(folder.id)}" aria-expanded="false" aria-controls="flush-collapseOne">
-                    <div class="flex-grow-1">${folder.name}</div>
-                    <a class="flex-shrink-0 me-2" 
-                        onclick="updateFolderModal(${folder.id}); console.log('Edit folder!')" 
-                        onmouseenter="document.getElementById('${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}').setAttribute('data-bs-toggle', '')"
-                        onmouseleave="document.getElementById('${folder.name.replace(/\W/g, "")+"_btn_"+String(folder.id)}').setAttribute('data-bs-toggle', 'collapse')"
-                    data-bs-toggle="modal" data-bs-target="#editFolderModal" style="cursor:pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
-                    </a>
-                </button>
-            </h2>
-            <div id="${folder.name.replace(/\W/g, "")+"_"+String(folder.id)}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                <ul class="list-group" style="width:95%; margin-left: 5%">
-        `
-
-        for (let j in folder.feeds) {
-            let feed = folder.feeds[j]
-            let feedInfo = getFeedInfo(feed.id)
-            
-            folderHTML += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                            <img
-                                src="${feedInfo.icon}"
-                                class="me-2"
-                                style="width:1rem; height:auto; top:0; left:0;"
-                                alt=""
-                            >
-                            <div class="flex-grow-1" style="text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical;">
-                                <a onclick="loadSubsetFeeds([${feed.id}])" style="cursor:pointer">${feed.name}</a>
-                            </div>
-                            <span class="badge text-bg-primary rounded-pill  ${feedInfo.nItems == 0 || !feedInfo.nItems ? "d-none" : ""}">${feedInfo.nItems}</span>
-                            <a class="flex-shrink-0 ms-2" onclick="updateFeedModal(${feed.id})" data-bs-toggle="modal" data-bs-target="#editFeedModal" style="cursor:pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
-                            </a>
-                        </li>
-            `
-        }
-        folderHTML += `
-                </ul>
-            </div>
-        </div>
-        `
-        folderElem.innerHTML += folderHTML
-        
-    }
-
-    // Add feeds in root (not in folder)
-    const rootElem = document.createElement('ul');
-    rootElem.classList.add("list-group")
-    for (let i in feedList.root) {
-        let feed = feedList.root[i]
-        let feedInfo = getFeedInfo(feed.id)
-
-        rootElem.innerHTML += `
-            <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                <img
-                  src="${feedInfo.icon}"
-                  class="me-2"
-                  style="width:1rem; height:auto; top:0; left:0;"
-                  alt=""
-                >
-                <div class="flex-grow-1" style="text-overflow: ellipsis; overflow: hidden;display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical;">
-                  <a onclick="loadSubsetFeeds([${feed.id}])" style="cursor:pointer">${feedInfo.displayName}</a>
-                </div>
-                <span class="badge text-bg-primary rounded-pill ${feedInfo.nItems == 0 ? "d-none" : ""}">${feedInfo.nItems}</span>
-                <a onclick="updateFeedModal(${feed.id})" class="flex-shrink-0 ms-2" data-bs-toggle="modal" data-bs-target="#editFeedModal" style="cursor:pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
-                </a>
-            </li>
-        `
-    }
-
-    // Add 'add feed' button
-    const addFeedBtnElem = document.createElement('ul');
-    addFeedBtnElem.classList.add("list-group")
-
-    addFeedBtnElem.innerHTML += `
-        <li class="list-group-item d-flex justify-content-left align-items-center border-0">
-                <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="4 2 16 20"><path fill="currentColor" d="m19.74 7.33l-4.44-5a1 1 0 0 0-.74-.33h-8A2.53 2.53 0 0 0 4 4.5v15A2.53 2.53 0 0 0 6.56 22h10.88A2.53 2.53 0 0 0 20 19.5V8a1 1 0 0 0-.26-.67M14 15h-1v1a1 1 0 0 1-2 0v-1h-1a1 1 0 0 1 0-2h1v-1a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2m.71-7a.79.79 0 0 1-.71-.85V4l3.74 4Z"/></svg>
-                <a  data-bs-toggle="modal" data-bs-target="#addFeedModal" style="cursor:pointer">Add Feed</a>
-        </li>
-    `
-
-    // Add 'add folder' button
-    const addFolderBtnElem = document.createElement('ul');
-    addFolderBtnElem.classList.add("list-group")
-
-    addFolderBtnElem.innerHTML += `
-        <li class="list-group-item d-flex justify-content-left align-items-center border-0">
-                <svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="4 2 16 20"><path fill="currentColor" d="M19.5 7.05h-7L9.87 3.87a1 1 0 0 0-.77-.37H4.5A2.47 2.47 0 0 0 2 5.93v12.14a2.47 2.47 0 0 0 2.5 2.43h15a2.47 2.47 0 0 0 2.5-2.43V9.48a2.47 2.47 0 0 0-2.5-2.43M14 15h-1v1a1 1 0 0 1-2 0v-1h-1a1 1 0 0 1 0-2h1v-1a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2"/></svg>
-                <a  data-bs-toggle="modal" data-bs-target="#addFolderModal" style="cursor:pointer">Add Folder</a>
-        </li>
-    `
-
-    feedsMenuElem.appendChild(homeBtnElem)
-    feedsMenuElem.appendChild(folderElem)
-    feedsMenuElem.appendChild(rootElem)
-    feedsMenuElem.appendChild(addFeedBtnElem)
-    feedsMenuElem.appendChild(addFolderBtnElem)
+function safeId(value) {
+  return String(value).replace(/[^\w-]/g, "");
 }
+
+function populateFeedsMenu(feedList) {
+  feedsMenuElem.replaceChildren();
+
+  // Home
+  const homeUl = document.createElement("ul");
+  homeUl.className = "list-group";
+
+  const homeLi = document.createElement("li");
+  homeLi.className = "list-group-item d-flex justify-content-left align-items-center border-0";
+
+  homeLi.insertAdjacentHTML(
+    "beforeend",
+    `<svg class="me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 1em; height: 1em;"><path fill="currentColor" d="M19.469 12.594l3.625 3.313c0.438 0.406 0.313 0.719-0.281 0.719h-2.719v8.656c0 0.594-0.5 1.125-1.094 1.125h-4.719v-6.063c0-0.594-0.531-1.125-1.125-1.125h-2.969c-0.594 0-1.125 0.531-1.125 1.125v6.063h-4.719c-0.594 0-1.125-0.531-1.125-1.125v-8.656h-2.688c-0.594 0-0.719-0.313-0.281-0.719l10.594-9.625c0.438-0.406 1.188-0.406 1.656 0l2.406 2.156v-1.719c0-0.594 0.531-1.125 1.125-1.125h2.344c0.594 0 1.094 0.531 1.094 1.125v5.875z"/></svg>`
+  );
+
+  const homeLink = document.createElement("a");
+  homeLink.style.cursor = "pointer";
+  homeLink.textContent = "All Feeds";
+  homeLink.onclick = loadSubsetFeeds;
+  homeLi.appendChild(homeLink);
+  homeUl.appendChild(homeLi);
+  feedsMenuElem.appendChild(homeUl);
+
+  // Folders
+  const folderElem = document.createElement("div");
+  folderElem.classList.add("accordion", "accordion-flush", "mb-1", "w-100");
+
+  for (const folder of feedList.folders) {
+    const folderSafe = safeId(folder.name);
+    const btnId = `${folderSafe}_btn_${folder.id}`;
+    const collapseId = `${folderSafe}_${folder.id}`;
+
+    const item = document.createElement("div");
+    item.className = "accordion-item";
+
+    const h2 = document.createElement("h2");
+    h2.className = "accordion-header";
+
+    const btn = document.createElement("button");
+    btn.id = btnId;
+    btn.className = "accordion-button collapsed shadow-none";
+    btn.type = "button";
+    btn.setAttribute("data-bs-toggle", "collapse");
+    btn.setAttribute("data-bs-target", `#${collapseId}`);
+    btn.setAttribute("aria-expanded", "false");
+
+    const title = document.createElement("div");
+    title.className = "flex-grow-1";
+    title.textContent = folder.name;
+    btn.appendChild(title);
+
+    const editLink = document.createElement("a");
+    editLink.className = "flex-shrink-0 me-2";
+    editLink.style.cursor = "pointer";
+    editLink.setAttribute("data-bs-toggle", "modal");
+    editLink.setAttribute("data-bs-target", "#editFolderModal");
+    editLink.onmouseenter = () => btn.setAttribute("data-bs-toggle", "");
+    editLink.onmouseleave = () => btn.setAttribute("data-bs-toggle", "collapse");
+    editLink.onclick = () => updateFolderModal(folder.id);
+    editLink.insertAdjacentHTML(
+      "beforeend",
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0z"/></svg>`
+    );
+    btn.appendChild(editLink);
+
+    h2.appendChild(btn);
+    item.appendChild(h2);
+
+    const collapse = document.createElement("div");
+    collapse.id = collapseId;
+    collapse.className = "accordion-collapse collapse";
+    collapse.setAttribute("data-bs-parent", "#accordionFlushExample");
+
+    const ul = document.createElement("ul");
+    ul.className = "list-group";
+    ul.style.width = "95%";
+    ul.style.marginLeft = "5%";
+
+    for (const feed of folder.feeds) {
+      const feedInfo = getFeedInfo(feed.id);
+
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center border-0";
+
+      const img = document.createElement("img");
+      img.src = feedInfo.icon || "";
+      img.className = "me-2";
+      img.style.width = "1rem";
+      img.style.height = "auto";
+      img.alt = "";
+
+      const wrap = document.createElement("div");
+      wrap.className = "flex-grow-1";
+      wrap.style.textOverflow = "ellipsis";
+      wrap.style.overflow = "hidden";
+      wrap.style.display = "-webkit-box";
+      wrap.style.webkitLineClamp = "1";
+      wrap.style.webkitBoxOrient = "vertical";
+
+      const a = document.createElement("a");
+      a.style.cursor = "pointer";
+      a.textContent = feed.name;
+      a.onclick = () => loadSubsetFeeds([feed.id]);
+
+      const badge = document.createElement("span");
+      badge.className = `badge text-bg-primary rounded-pill ${!feedInfo.nItems ? "d-none" : ""}`;
+      badge.textContent = String(feedInfo.nItems || "");
+
+      const more = document.createElement("a");
+      more.className = "flex-shrink-0 ms-2";
+      more.style.cursor = "pointer";
+      more.setAttribute("data-bs-toggle", "modal");
+      more.setAttribute("data-bs-target", "#editFeedModal");
+      more.onclick = () => updateFeedModal(feed.id);
+      more.insertAdjacentHTML(
+        "beforeend",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0z"/></svg>`
+      );
+
+      wrap.appendChild(a);
+      li.appendChild(img);
+      li.appendChild(wrap);
+      li.appendChild(badge);
+      li.appendChild(more);
+      ul.appendChild(li);
+    }
+
+    collapse.appendChild(ul);
+    item.appendChild(collapse);
+    folderElem.appendChild(item);
+  }
+
+  // Root feeds
+  const rootUl = document.createElement("ul");
+  rootUl.className = "list-group";
+
+  for (const feed of feedList.root) {
+    const feedInfo = getFeedInfo(feed.id);
+
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex justify-content-between align-items-center border-0";
+
+    const img = document.createElement("img");
+    img.src = feedInfo.icon || "";
+    img.className = "me-2";
+    img.style.width = "1rem";
+    img.style.height = "auto";
+    img.alt = "";
+
+    const wrap = document.createElement("div");
+    wrap.className = "flex-grow-1";
+    wrap.style.textOverflow = "ellipsis";
+    wrap.style.overflow = "hidden";
+    wrap.style.display = "-webkit-box";
+    wrap.style.webkitLineClamp = "1";
+    wrap.style.webkitBoxOrient = "vertical";
+
+    const a = document.createElement("a");
+    a.style.cursor = "pointer";
+    a.textContent = feedInfo.displayName;
+    a.onclick = () => loadSubsetFeeds([feed.id]);
+
+    const badge = document.createElement("span");
+    badge.className = `badge text-bg-primary rounded-pill ${!feedInfo.nItems ? "d-none" : ""}`;
+    badge.textContent = String(feedInfo.nItems || "");
+
+    const more = document.createElement("a");
+    more.className = "flex-shrink-0 ms-2";
+    more.style.cursor = "pointer";
+    more.setAttribute("data-bs-toggle", "modal");
+    more.setAttribute("data-bs-target", "#editFeedModal");
+    more.onclick = () => updateFeedModal(feed.id);
+    more.insertAdjacentHTML(
+      "beforeend",
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0z"/></svg>`
+    );
+
+    wrap.appendChild(a);
+    li.appendChild(img);
+    li.appendChild(wrap);
+    li.appendChild(badge);
+    li.appendChild(more);
+    rootUl.appendChild(li);
+  }
+
+  // Add feed button
+  const addFeedUl = document.createElement("ul");
+  addFeedUl.className = "list-group";
+
+  const addFeedLi = document.createElement("li");
+  addFeedLi.className = "list-group-item d-flex justify-content-left align-items-center border-0";
+  addFeedLi.insertAdjacentHTML(
+    "beforeend",
+    `<svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="4 2 16 20"><path fill="currentColor" d="m19.74 7.33l-4.44-5a1 1 0 0 0-.74-.33h-8A2.53 2.53 0 0 0 4 4.5v15A2.53 2.53 0 0 0 6.56 22h10.88A2.53 2.53 0 0 0 20 19.5V8a1 1 0 0 0-.26-.67M14 15h-1v1a1 1 0 0 1-2 0v-1h-1a1 1 0 0 1 0-2h1v-1a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2m.71-7a.79.79 0 0 1-.71-.85V4l3.74 4Z"/></svg>`
+  );
+
+  const addFeedLink = document.createElement("a");
+  addFeedLink.style.cursor = "pointer";
+  addFeedLink.textContent = "Add Feed";
+  addFeedLink.setAttribute("onclick", "document.querySelectorAll('#sourcePicker .source-btn').forEach(b => b.classList.remove('active')); document.getElementById('addFeedForm').hidden = true")
+  addFeedLink.setAttribute("data-bs-toggle", "modal");
+  addFeedLink.setAttribute("data-bs-target", "#addFeedModal");
+  addFeedLi.appendChild(addFeedLink);
+  addFeedUl.appendChild(addFeedLi);
+
+  // Add folder button
+  const addFolderUl = document.createElement("ul");
+  addFolderUl.className = "list-group";
+
+  const addFolderLi = document.createElement("li");
+  addFolderLi.className = "list-group-item d-flex justify-content-left align-items-center border-0";
+  addFolderLi.insertAdjacentHTML(
+    "beforeend",
+    `<svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="4 2 16 20"><path fill="currentColor" d="M19.5 7.05h-7L9.87 3.87a1 1 0 0 0-.77-.37H4.5A2.47 2.47 0 0 0 2 5.93v12.14a2.47 2.47 0 0 0 2.5 2.43h15a2.47 2.47 0 0 0 2.5-2.43V9.48a2.47 2.47 0 0 0-2.5-2.43M14 15h-1v1a1 1 0 0 1-2 0v-1h-1a1 1 0 0 1 0-2h1v-1a1 1 0 0 1 2 0v1h1a1 1 0 0 1 0 2"/></svg>`
+  );
+
+  const addFolderLink = document.createElement("a");
+  addFolderLink.style.cursor = "pointer";
+  addFolderLink.textContent = "Add Folder";
+  addFolderLink.setAttribute("data-bs-toggle", "modal");
+  addFolderLink.setAttribute("data-bs-target", "#addFolderModal");
+  addFolderLink.onclick = () => {
+    document.getElementById("newFolderNameInput").value = "";
+    document.getElementById("addFolderBtn").disabled = true;
+  };
+  addFolderLi.appendChild(addFolderLink);
+  addFolderUl.appendChild(addFolderLi);
+
+  feedsMenuElem.appendChild(homeUl);
+  feedsMenuElem.appendChild(folderElem);
+  feedsMenuElem.appendChild(rootUl);
+  feedsMenuElem.appendChild(addFeedUl);
+  feedsMenuElem.appendChild(addFolderUl);
+}
+
 
 // Updates feed modal when menu is opened
 function updateFeedModal(id) {
@@ -156,14 +270,23 @@ function updateFeedModal(id) {
     console.log("Opened modal for feed", id)
 }
 
+// Updates add feed form when source is chosen
+function updateAddFeedForm(source, btn) {
+  document.querySelectorAll('#sourcePicker .source-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  document.getElementById('addFeedForm').hidden = false
+}
+
+
 // Updates feed modal when menu is opened
 function updateFolderModal(id) {
     let folderInfo = getFolder(id) // id, name, feeds
     console.log(folderInfo)
     let folderModalElem = document.getElementById("editFolderModal")
     let folderModalLabelElem = document.getElementById("editFolderModalLabel")
-    let folderModalBodyElem = document.getElementById("editFolderModalBody")
-    folderModalLabelElem.textContent = folderInfo.name
+    let folderModalNameElem = document.getElementById("editFolderNameInput")
+    folderModalNameElem.value = folderInfo.name + "&lt;"
     folderModalElem.setAttribute("label", id)
     console.log("Opened modal for folder", id)
 }
@@ -230,16 +353,10 @@ function moveFeed(targetId, folder = -1) {
     return true
 }
 
-function addNewFeed(url, folder = -1) {
-
-}
-
-function addNewFolder(name) {
-    feedList.folders.push({
-        id: getMaxId(feedList),
-        name: name,
-        feeds: []
-    })
+function editFolder(targetId, name) {
+    targetId = parseInt(targetId)
+    let folder = getFolder(targetId)
+    folder.name = name
     localStorage.setItem("feedList", JSON.stringify(feedList)) 
     populateFeedsMenu(feedList)
     return true
