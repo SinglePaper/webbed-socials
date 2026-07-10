@@ -41,7 +41,7 @@ async function updateAddFeedForm(source, btn) {
         for (const [name, url] of sources) {
             let optionElem = document.createElement("option") // <option value="0">...</option>
             optionElem.value = url
-            optionElem.textContent = name
+            optionElem.textContent = name.replace(/\b\w/, (c) => c.toUpperCase())
             dropoutSourcesElem.appendChild(optionElem)
         }
     });
@@ -79,30 +79,45 @@ async function updateAddFeedForm(source, btn) {
     document.getElementById('addFeedForm').hidden = false
 }
 
-function addYouTubeFeed() {
-    const channelUrl = document.querySelector(`div.youtube .url`).value;
+async function addYouTubeFeed() {
+    const formUrl = document.querySelector(`div.youtube .url`).value;
     const includeShorts = document.querySelector(`div.youtube .form-check-input`).checked;
     const targetFolder = parseInt(document.querySelector(`#addFeedFolders`).value);
     let feed;
-    if (True) { // CHECK IF IT IS A PLAYLIST BEFORE DOING THIS AND HANDLE THAT
-        const channelId = fetchChannelId(channelUrl)
-        let rssUrl = `` // don't forget to consider includeShorts
+
+    const isChannel = !formUrl.includes("playlist?list=")
+    const isRSS = formUrl.includes("feeds/videos.xml?")
+    if (isChannel && !isRSS) {
+        const channelId = await fetchChannelId(formUrl)
+        const username = formUrl.split("/@")[1].replace("/","")
+        let rssUrl = `https://www.youtube.com/feeds/videos.xml?${includeShorts ? "channel_id" : "playlist_id"}=${includeShorts ? channelId : "UULF"+channelId.substring(2)}` // don't forget to consider includeShorts
+        console.log(rssUrl)
+        // Fetch URL to get feed name
+
+        // Assemble feed
+        feed = {
+            name: username,
+            url: rssUrl,
+            id: getMaxId(feedList) + 1
+        }
+    } else if (!isChannel && !isRSS) {
+        let rssUrl = `https://www.youtube.com/feeds/videos.xml?playlist_id=${formUrl.split("playlist?list=")[1]}`
+        console.log(rssUrl)
         // Fetch URL to get feed name
 
         // Assemble feed
         feed  = {
-            name: "YouTube",
-            url: "https://www.youtube.com",
+            name: "Playlist",
+            url: rssUrl,
             id: getMaxId(feedList) + 1
         }
     } else {
-        let rssUrl = ``
         // Fetch URL to get feed name
 
         // Assemble feed
         feed  = {
             name: "YouTube",
-            url: "https://www.youtube.com",
+            url: formUrl,
             id: getMaxId(feedList) + 1
         }
     }
@@ -113,38 +128,104 @@ function addYouTubeFeed() {
 }
 
 function addDropoutFeed() {
+    let rssUrl = `https://singlepaper.github.io/dropout-rss/${document.getElementById("selectDropoutSources").value}` // check this
+    let feedTitle = document.getElementById("selectDropoutSources").selectedOptions[0].textContent
+    const targetFolder = parseInt(document.querySelector(`#addFeedFolders`).value);
+    
     console.log("Adding Dropout")
-    let feed = {}
+    let feed  = {
+        name: feedTitle,
+        url: rssUrl,
+        id: getMaxId(feedList) + 1
+    }
 
-    return addFeed(feed, folder)
+    return addFeed(feed, targetFolder)
 }
 
 function addNebulaFeed() {
-    console.log("Adding Nebula")
-    let feed = {}
+    const formUrl = document.querySelector(`div.nebula .url`).value;
+    const nebulaPlusOnly = document.querySelector(`#checkPlus`).checked;
+    const targetFolder = parseInt(document.querySelector(`#addFeedFolders`).value);
+    let rssUrl, name;
+    let isChannel = !formUrl.includes("?category=")
 
-    return addFeed(feed, folder)
+    if (isChannel) {
+        let channelName = formUrl.split("nebula.tv/")[1].replace("/","")
+        name = channelName
+        rssUrl = `https://rss.nebula.app/video/channels/${channelName}.rss${nebulaPlusOnly ? "?plus=true" : ""}`
+    } else {
+        let categoryName = formUrl.split("videos?category=")[1].replace("/","")
+        name = categoryName
+        rssUrl = `https://rss.nebula.app/video/categories/${categoryName}.rss${nebulaPlusOnly ? "?plus=true" : ""}`
+    }
+
+    // Fetch URL to get feed name
+
+    // Assemble feed
+    console.log("Adding Nebula")
+    let feed  = {
+        name: name.replace(/\b\w/, (c) => c.toUpperCase()), // This ain't right! You need to fetch the RSS and extract the name instead 
+        url: rssUrl,
+        id: getMaxId(feedList) + 1
+    }
+    console.log(feed)
+    return addFeed(feed, targetFolder)
 }
 
 function addTwitchFeed() {
+    const formUrl = document.querySelector(`div.twitch .url`).value;
+    const targetFolder = parseInt(document.querySelector(`#addFeedFolders`).value);
     console.log("Adding Twitch")
-    let feed = {}
+    const channelName = formUrl.split("twitch.tv/")[1].replace("/","")
+    const rssUrl = `https://twitchrss.appspot.com/vod/${channelName}`
 
-    return addFeed(feed, folder)
+    // Fetch URL to get feed name (not really necessary)
+
+    // Assemble feed
+    let feed = {
+        name: channelName,
+        url: rssUrl,
+        id: getMaxId(feedList) + 1 
+    }
+
+    return addFeed(feed, targetFolder)
 }
 
 function addBlueskyFeed() {
-    console.log("Adding Bluesky")
-    let feed = {}
+    const formUrl = document.querySelector(`div.bluesky .url`).value;
+    const targetFolder = parseInt(document.querySelector(`#addFeedFolders`).value);
 
-    return addFeed(feed, folder)
+    console.log("Adding Bluesky")
+    const username = formUrl.split("/profile/")[1].replace("/","")
+    const rssUrl = `${formUrl}/rss`
+
+    // Fetch URL to get feed name (not really necessary)
+
+    // Assemble feed
+    let feed = {
+        name: username,
+        url: rssUrl,
+        id: getMaxId(feedList) + 1 
+    }
+
+    return addFeed(feed, targetFolder)
 }
 
 function addOtherFeed() {
+    const formUrl = document.querySelector(`div.other .url`).value;
+    const targetFolder = parseInt(document.querySelector(`#addFeedFolders`).value);
     console.log("Adding Other")
-    let feed = {}
 
-    return addFeed(feed, folder)
+    // Fetch URL to get feed name (not really necessary)
+    let name = "Other feed"
+    // Assemble feed
+    let feed = {
+        name: name,
+        url: formUrl,
+        id: getMaxId(feedList) + 1 
+    }
+
+    return addFeed(feed, targetFolder)
 }
 
 
