@@ -46,40 +46,102 @@ async function updateAddFeedForm(source, btn) {
         }
     });
 
+    document.getElementById("addFeedBtn").onclick = function () {
+        switch (source) {
+            case "youtube": addYouTubeFeed(); break
+            case "dropout": addDropoutFeed(); break
+            case "nebula": addNebulaFeed(); break
+            case "twitch": addTwitchFeed(); break
+            case "bluesky": addBlueskyFeed(); break
+            case "other": addOtherFeed(); break
+        }
+    }
+
+    // Enable/Disable the confirmed 'Add' button when appropriate
+    const addFeedBtn = document.getElementById("addFeedBtn") 
+    const inputs = document.querySelectorAll(`div.${source} .url`);
+    inputs.forEach(function (input) {
+        input.value = ""
+    })
+    
+    const check = () => {
+        addFeedBtn.disabled = [...inputs].some(input => input.value.trim() === "");
+    };
+
+    inputs.forEach(input => {
+        input.addEventListener("keyup", check);
+        input.addEventListener("change", check);
+    });
+
+    check();
+
+    // Show form
     document.getElementById('addFeedForm').hidden = false
 }
 
-function addYouTubeFeed(url, folder=-1) {
+function addYouTubeFeed() {
+    const channelUrl = document.querySelector(`div.youtube .url`).value;
+    const includeShorts = document.querySelector(`div.youtube .form-check-input`).checked;
+    const targetFolder = parseInt(document.querySelector(`#addFeedFolders`).value);
+    let feed;
+    if (True) { // CHECK IF IT IS A PLAYLIST BEFORE DOING THIS AND HANDLE THAT
+        const channelId = fetchChannelId(channelUrl)
+        let rssUrl = `` // don't forget to consider includeShorts
+        // Fetch URL to get feed name
+
+        // Assemble feed
+        feed  = {
+            name: "YouTube",
+            url: "https://www.youtube.com",
+            id: getMaxId(feedList) + 1
+        }
+    } else {
+        let rssUrl = ``
+        // Fetch URL to get feed name
+
+        // Assemble feed
+        feed  = {
+            name: "YouTube",
+            url: "https://www.youtube.com",
+            id: getMaxId(feedList) + 1
+        }
+    }
+    console.log("Adding YouTube")
+
+
+    return addFeed(feed, targetFolder)
+}
+
+function addDropoutFeed() {
+    console.log("Adding Dropout")
     let feed = {}
 
     return addFeed(feed, folder)
 }
 
-function addDropoutFeed(url, folder=-1) {
+function addNebulaFeed() {
+    console.log("Adding Nebula")
     let feed = {}
 
     return addFeed(feed, folder)
 }
 
-function addNebulaFeed(url, folder=-1) {
+function addTwitchFeed() {
+    console.log("Adding Twitch")
     let feed = {}
 
     return addFeed(feed, folder)
 }
 
-function addTwitchFeed(url, folder=-1) {
+function addBlueskyFeed() {
+    console.log("Adding Bluesky")
     let feed = {}
 
     return addFeed(feed, folder)
 }
 
-function addBlueskyFeed(url, folder=-1) {
-    let feed = {}
-
-    return addFeed(feed, folder)
-}
-
-function addOtherFeed(url, folder=-1) {
+function addOtherFeed() {
+    console.log("Adding Other")
     let feed = {}
 
     return addFeed(feed, folder)
