@@ -221,7 +221,7 @@ function populateFeedsMenu(feedList) {
   const addFeedLink = document.createElement("a");
   addFeedLink.style.cursor = "pointer";
   addFeedLink.textContent = "Add Feed";
-  addFeedLink.setAttribute("onclick", "document.querySelectorAll('#sourcePicker .source-btn').forEach(b => b.classList.remove('active')); document.getElementById('addFeedForm').hidden = true")
+  addFeedLink.setAttribute("onclick", "document.querySelectorAll('#sourcePicker .source-btn').forEach(b => {b.classList.remove('active'); b.disabled = true; window.setTimeout(()=>{b.disabled = false},500)}); document.getElementById('addFeedForm').hidden = true;")
   addFeedLink.setAttribute("data-bs-toggle", "modal");
   addFeedLink.setAttribute("data-bs-target", "#addFeedModal");
   addFeedLi.appendChild(addFeedLink);
@@ -268,14 +268,6 @@ function updateFeedModal(id) {
     feedModalLabelElem.textContent = feedInfo.originalName
     feedModalElem.setAttribute("label", id)
     console.log("Opened modal for feed", id)
-}
-
-// Updates add feed form when source is chosen
-function updateAddFeedForm(source, btn) {
-  document.querySelectorAll('#sourcePicker .source-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  document.getElementById('addFeedForm').hidden = false
 }
 
 
@@ -339,6 +331,7 @@ function addFeed(feed, folder = -1) { // Feed is a dictionary containing name, u
 
     // Refresh feeds and menu
     refreshFeeds()
+    
     return true
 }
 
