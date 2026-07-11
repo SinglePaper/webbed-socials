@@ -182,9 +182,10 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,f
     return feedItem
 }
 
-function handleYouTube(xmlDoc, targetFeed) {
+function handleYouTube(xmlDoc, targetFeed, nameOnly = false) {
     const feedTitle = xmlDoc.querySelector("author").querySelector("name").textContent
-    
+    if (nameOnly) {return feedTitle}
+
     const items = xmlDoc.querySelectorAll("entry");
     let feedItems = [];
 
@@ -214,8 +215,9 @@ function handleYouTube(xmlDoc, targetFeed) {
     return feedItems
 }
 
-function handleTwitch(xmlDoc, targetFeed) {
+function handleTwitch(xmlDoc, targetFeed, nameOnly = false) {
     const feedTitle = xmlDoc.querySelector("title").textContent.split("'s Twitch")[0]
+    if (nameOnly) {return feedTitle}
 
     const items = xmlDoc.querySelectorAll("item");
     let feedItems = [];
@@ -258,9 +260,10 @@ function handleTwitch(xmlDoc, targetFeed) {
     return feedItems
 }
 
-function handleBluesky(xmlDoc, targetFeed) {
+function handleBluesky(xmlDoc, targetFeed, nameOnly = false) {
     const feedTitle = xmlDoc.querySelector("title").textContent
-    
+    if (nameOnly) {return feedTitle}
+
     const items = xmlDoc.querySelectorAll("item");
     let feedItems = [];
 
@@ -289,6 +292,7 @@ function handleBluesky(xmlDoc, targetFeed) {
 
 function handleRDF(xmlDoc, targetFeed) {
     const feedTitle = xmlDoc.querySelector("title").textContent
+    if (nameOnly) {return feedTitle}
     
     const items = xmlDoc.querySelectorAll("item");
     let feedItems = [];
@@ -335,7 +339,7 @@ function handleRDF(xmlDoc, targetFeed) {
 // Posted by Martin Honnen
 // Retrieved 2026-05-23, License - CC BY-SA 4.0
 
-async function fetchRSS(targetFeed) {
+async function fetchRSS(targetFeed, nameOnly = false) {
     const protocol = window.location.protocol;
     const host = window.location.host;
     const fetchUrl = `${protocol}//${host}/api/rss-proxy?url=${encodeURIComponent(targetFeed.url)}`;
@@ -354,28 +358,30 @@ async function fetchRSS(targetFeed) {
 
         // YouTube is weird, so we'll handle it in a separate function.
         if (targetFeed.url.includes("youtube.com/feeds")) {
-            return handleYouTube(xmlDoc, targetFeed)
+            return handleYouTube(xmlDoc, targetFeed, nameOnly)
         }        
         // Twitch is weird, so we'll handle it in a separate function.
         if (targetFeed.url.includes("twitchrss")) {
-            return handleTwitch(xmlDoc, targetFeed)
+            return handleTwitch(xmlDoc, targetFeed, nameOnly)
         }
         // Bluesky is weird, so we'll handle it in a separate function.
         if (targetFeed.url.includes("bsky.app")) {
-            return handleBluesky(xmlDoc, targetFeed)
+            return handleBluesky(xmlDoc, targetFeed, nameOnly)
         }
         // RDF works a little differently
         if (xmlDoc.querySelector("RDF")) {
-            return handleRDF(xmlDoc, targetFeed)
+            return handleRDF(xmlDoc, targetFeed, nameOnly)
         }
 
-        let feedTitle
+        let feedTitle;
         try {
           feedTitle = xmlDoc.querySelector("channel").querySelector("title").textContent
         } catch (error) {
           feedTitle = xmlDoc.querySelector("feed").querySelector("title").textContent
         }
-        // console.log(xmlDoc.querySelectorAll("item"))
+
+        if (nameOnly) {return feedTitle}
+        
         let items = xmlDoc.querySelectorAll("item");
         if (items.length == 0) {
           items = xmlDoc.querySelectorAll("entry");
