@@ -290,7 +290,7 @@ function handleBluesky(xmlDoc, targetFeed, nameOnly = false) {
     return feedItems
 }
 
-function handleRDF(xmlDoc, targetFeed) {
+function handleRDF(xmlDoc, targetFeed, nameOnly = false) {
     const feedTitle = xmlDoc.querySelector("title").textContent
     if (nameOnly) {return feedTitle}
     
