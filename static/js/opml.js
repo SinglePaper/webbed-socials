@@ -75,7 +75,7 @@ function downloadOPML () {
 }
 
 function downloadLocalStorage() {
-  const blob = new Blob([localStorage], { type: "text/plain" });
+  const blob = new Blob([JSON.stringify(localStorage)], { type: "text/plain" });
   
   // Create a temporary URL for the Blob
   const url = URL.createObjectURL(blob);
