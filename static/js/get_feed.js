@@ -1,8 +1,9 @@
 let targetFeeds;
 let feedInfos = {}
-localStorage.allFeedItems = JSON.stringify([])
 
-let allFeedItems = []
+if (!localStorage.allFeedItems) { localStorage.allFeedItems = JSON.stringify([]) }
+let allFeedItems = JSON.parse(localStorage.allFeedItems)
+console.log(allFeedItems)
 
 function loadUrls(ids=[]) {
   let feedList = JSON.parse(localStorage.feedList)
@@ -24,7 +25,7 @@ function loadUrls(ids=[]) {
 // Retrieved 2026-05-23, License - CC BY-SA 4.0
 
 function timeSince(date) {
-
+  date = new Date(date)
   var seconds = Math.floor((new Date() - date) / 1000);
 
   var interval = seconds / 31536000;
@@ -95,7 +96,7 @@ function extractFirstUrl(str) {
 }
 
 function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,feedId, thumbnail="../images/default_thumbnail_720p.png", mobile=false) {
-    const feedItem = document.createElement('div');
+  const feedItem = document.createElement('div');
     if (mobile) {
       feedItem.classList.add('row');
     } else {
@@ -202,9 +203,9 @@ function handleYouTube(xmlDoc, targetFeed, nameOnly = false) {
         const hosturl = new URL(item.querySelector("link").attributes.href.value)
         const feedIcon = "../images/favicon_yt.png"
         const thumbnail = item.querySelector("thumbnail").attributes.url.value.replace("hqdefault", "hq720")
-        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
-        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail, mobile=true);
-        feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
+        // const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
+        // const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail, mobile=true);
+        feedItems.push([title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail]);
 
         // Store information for feeds list in sidebar
         feedInfos[targetFeed.id] = {
@@ -248,9 +249,9 @@ function handleTwitch(xmlDoc, targetFeed, nameOnly = false) {
         }
         const link = currentlyLive ? `https://www.twitch.tv/${feedTitle}` : item.querySelector("link").textContent;
 
-        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
-        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail, mobile=true);
-        feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
+        // const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
+        // const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail, mobile=true);
+        feedItems.push([title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail]);
 
         // Store information for feeds list in sidebar
         feedInfos[targetFeed.id] = {
@@ -279,9 +280,9 @@ function handleBluesky(xmlDoc, targetFeed, nameOnly = false) {
         const guid = item.querySelector("guid").textContent;
         const pubDate = new Date(item.querySelector("pubDate").textContent);
         const feedIcon = "../images/favicon_bsky.png"
-        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id);
-        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id);
-        feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
+        // const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id);
+        // const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id);
+        feedItems.push([title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id]);
 
         // Store information for feeds list in sidebar
         feedInfos[targetFeed.id] = {
@@ -322,10 +323,10 @@ function handleRDF(xmlDoc, targetFeed, nameOnly = false) {
         }
 
         description = removeHTML(description)
-        const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
-        const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail,mobile=true);
+        // const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
+        // const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail,mobile=true);
 
-        feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
+        feedItems.push([title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail]);
 
         // Store information for feeds list in sidebar
         feedInfos[targetFeed.id] = {
@@ -438,10 +439,8 @@ async function fetchRSS(targetFeed, nameOnly = false) {
             }
 
             description = removeHTML(description)
-            const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
-            const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail,mobile=true);
 
-            feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
+            feedItems.push([title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail]);
             
             // Store information for feeds list in sidebar
             feedInfos[targetFeed.id] = {
@@ -462,22 +461,27 @@ async function fetchRSS(targetFeed, nameOnly = false) {
 
 // Displays items that have been previously retrieved (could have been saved)
 function displayItems() {
-    allFeedItems.sort(function(a,b){return new Date(b[0]) - new Date(a[0])})
+    allFeedItems.sort(function(a,b){return new Date(b[5]) - new Date(a[5])})
+    
     const feedContainerDesktop = document.getElementById('feed-container-desktop');
     const feedContainerMobile = document.getElementById('feed-container-mobile');
     feedContainerDesktop.innerHTML = '';
     feedContainerMobile.innerHTML = '';
 
     allFeedItems.forEach(item => {
-        feedContainerDesktop.insertAdjacentHTML('beforeend', item[2]);
-        feedContainerMobile.insertAdjacentHTML('beforeend', item[3]);
+      const feedItemDesktop = createFeedItem(...item);
+      const feedItemMobile = createFeedItem(...item, "../images/default_thumbnail_720p.png", true);
+
+      feedContainerDesktop.insertAdjacentHTML('beforeend', feedItemDesktop);
+      feedContainerMobile.insertAdjacentHTML('beforeend', feedItemMobile);
     });
 }
 
 
 async function loadFeeds() {
     // Display saved items
-    if (allFeedItems.length > 0) {displayItems()}
+    console.log(allFeedItems.length > 0)
+    if (allFeedItems.length > 0) {console.log("Going fast yippeee!"); displayItems()}
 
     // Fetch items
     for (let i in targetFeeds) {
@@ -486,12 +490,13 @@ async function loadFeeds() {
 
         // Exclude pre-existing items
         items.forEach(item => {
-          if (!allFeedItems.find((existingItem) => existingItem[1] == item[1])) { allFeedItems.push(item) } 
+          if (!allFeedItems.find((existingItem) => existingItem[4] == item[4])) { allFeedItems.push(item) } 
         })
     }
     const textEncoder = new TextEncoder();
     console.log("Feed items list size: ",textEncoder.encode(JSON.stringify(allFeedItems)).length);
     // Store info
+    localStorage.allFeedItems = JSON.stringify(allFeedItems)
     localStorage.feedInfos = JSON.stringify(feedInfos)
 
     // Display updated items
