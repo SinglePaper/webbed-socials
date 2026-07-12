@@ -1,5 +1,7 @@
 let targetFeeds;
 let feedInfos = {}
+if (!localStorage.allFeedItems) {localStorage.allFeedItems = JSON.stringify([])}
+let allFeedItems = JSON.parse(localStorage.allFeedItems)
 
 function loadUrls(ids=[]) {
   let feedList = JSON.parse(localStorage.feedList)
@@ -103,9 +105,9 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,f
     }
 
     let DESKTOP_CARD = `
-      <div class="mb-4">
+      <div class="mb-4" label="${guid}">
         <div class="text-start position-relative">
-          <a href="${link}" target="_blank" label="${guid}">
+          <a href="${link}" target="_blank">
             <div class="position-relative">
               <div class="ratio ratio-16x9 mb-2">
                 <img
@@ -132,9 +134,9 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,f
     `
 
     let PHONE_CARD = `
-    <div class="row mb-3">
+    <div class="row mb-3" label="${guid}">
         <div class="col-6">
-          <a href="${link}" target="_blank" label="${guid}">
+          <a href="${link}" target="_blank">
             <div class="position-relative">
               <div class="ratio ratio-16x9 mb-2">
                 <img
@@ -179,7 +181,8 @@ function createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,f
           </div>
         </div>
     `
-    return feedItem
+    
+    return feedItem.outerHTML
 }
 
 function handleYouTube(xmlDoc, targetFeed, nameOnly = false) {
@@ -200,7 +203,7 @@ function handleYouTube(xmlDoc, targetFeed, nameOnly = false) {
         const thumbnail = item.querySelector("thumbnail").attributes.url.value.replace("hqdefault", "hq720")
         const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
         const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail, mobile=true);
-        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+        feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
 
         // Store information for feeds list in sidebar
         feedInfos[targetFeed.id] = {
@@ -246,7 +249,7 @@ function handleTwitch(xmlDoc, targetFeed, nameOnly = false) {
 
         const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
         const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail, mobile=true);
-        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+        feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
 
         // Store information for feeds list in sidebar
         feedInfos[targetFeed.id] = {
@@ -277,7 +280,7 @@ function handleBluesky(xmlDoc, targetFeed, nameOnly = false) {
         const feedIcon = "../images/favicon_bsky.png"
         const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id);
         const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id);
-        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+        feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
 
         // Store information for feeds list in sidebar
         feedInfos[targetFeed.id] = {
@@ -321,7 +324,7 @@ function handleRDF(xmlDoc, targetFeed, nameOnly = false) {
         const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
         const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail,mobile=true);
 
-        feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+        feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
 
         // Store information for feeds list in sidebar
         feedInfos[targetFeed.id] = {
@@ -437,7 +440,7 @@ async function fetchRSS(targetFeed, nameOnly = false) {
             const feedItemDesktop = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail);
             const feedItemMobile = createFeedItem(title,feedTitle,description,link,guid,pubDate,feedIcon,targetFeed.id,thumbnail,mobile=true);
 
-            feedItems.push([pubDate, feedItemDesktop, feedItemMobile]);
+            feedItems.push([pubDate, guid, feedItemDesktop, feedItemMobile]);
             
             // Store information for feeds list in sidebar
             feedInfos[targetFeed.id] = {
@@ -456,27 +459,45 @@ async function fetchRSS(targetFeed, nameOnly = false) {
     }
 }
 
-async function loadFeeds() {
-    all_feed_items = []
-    for (let i in targetFeeds) {
-        let targetFeed = targetFeeds[i]
-        all_feed_items = all_feed_items.concat(await fetchRSS(targetFeed))
-    }
-    localStorage.feedInfos = JSON.stringify(feedInfos)
-    all_feed_items.sort(function(a,b){return b[0]-a[0]})
+// Displays items that have been previously retrieved (could have been saved)
+function displayItems() {
+    allFeedItems.sort(function(a,b){return new Date(b[0]) - new Date(a[0])})
     const feedContainerDesktop = document.getElementById('feed-container-desktop');
     const feedContainerMobile = document.getElementById('feed-container-mobile');
     feedContainerDesktop.innerHTML = '';
     feedContainerMobile.innerHTML = '';
 
-    for (let i in all_feed_items) {
-        let feed_item = all_feed_items[i][1]
-        feedContainerDesktop.appendChild(feed_item);
-        feed_item = all_feed_items[i][2]
-        feedContainerMobile.appendChild(feed_item);
+    allFeedItems.forEach(item => {
+        feedContainerDesktop.insertAdjacentHTML('beforeend', item[2]);
+        feedContainerMobile.insertAdjacentHTML('beforeend', item[3]);
+    });
+}
+
+
+async function loadFeeds() {
+    // Display saved items
+    if (allFeedItems.length > 0) {displayItems()}
+
+    // Fetch items
+    for (let i in targetFeeds) {
+        let targetFeed = targetFeeds[i]
+        let items = await fetchRSS(targetFeed)
+
+        // Exclude pre-existing items
+        items.forEach(item => {
+          if (!allFeedItems.find((existingItem) => existingItem[1] == item[1])) { allFeedItems.push(item) } 
+        })
     }
 
+    // Store info
+    localStorage.allFeedItems = JSON.stringify(allFeedItems)
+    localStorage.feedInfos = JSON.stringify(feedInfos)
+
+    // Display updated items
+    displayItems()
+
     window.parent.postMessage({ type: 'populate-feeds-menu' }, '*') // Repopulate feeds menu with updated icons and feed item counts
+    console.log("Finished reloading feeds!")
 }
 
 
