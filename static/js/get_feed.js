@@ -1,6 +1,7 @@
 let targetFeeds;
 let feedInfos = {}
 localStorage.allFeedItems = JSON.stringify([])
+
 let allFeedItems = []
 
 function loadUrls(ids=[]) {
@@ -488,7 +489,8 @@ async function loadFeeds() {
           if (!allFeedItems.find((existingItem) => existingItem[1] == item[1])) { allFeedItems.push(item) } 
         })
     }
-
+    const textEncoder = new TextEncoder();
+    console.log("Feed items list size: ",textEncoder.encode(JSON.stringify(allFeedItems)).length);
     // Store info
     localStorage.feedInfos = JSON.stringify(feedInfos)
 
