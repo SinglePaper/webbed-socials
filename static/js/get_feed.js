@@ -1,7 +1,7 @@
 let targetFeeds;
 let feedInfos = {}
-if (!localStorage.allFeedItems) {localStorage.allFeedItems = JSON.stringify([])}
-let allFeedItems = JSON.parse(localStorage.allFeedItems)
+localStorage.allFeedItems = JSON.stringify([])
+let allFeedItems = []
 
 function loadUrls(ids=[]) {
   let feedList = JSON.parse(localStorage.feedList)
@@ -490,7 +490,6 @@ async function loadFeeds() {
     }
 
     // Store info
-    localStorage.allFeedItems = JSON.stringify(allFeedItems)
     localStorage.feedInfos = JSON.stringify(feedInfos)
 
     // Display updated items
