@@ -449,7 +449,7 @@ function saveOPML(userID) {
 
 }
 
-function loadSubsetFeeds(ids) {
+function loadSubsetFeeds(ids=[]) {
     iframeElem.contentWindow.postMessage({ type: 'load-feeds', ids: JSON.stringify(ids) }, '*');
     document.getElementById("menu-btn-close").click()
 }

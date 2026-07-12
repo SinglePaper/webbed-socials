@@ -3,7 +3,7 @@ let feedInfos = {}
 
 if (!localStorage.allFeedItems) { localStorage.allFeedItems = JSON.stringify([]) }
 let allFeedItems = JSON.parse(localStorage.allFeedItems)
-console.log(allFeedItems)
+let targetFeedItems = []
 
 function loadUrls(ids=[]) {
   let feedList = JSON.parse(localStorage.feedList)
@@ -460,15 +460,15 @@ async function fetchRSS(targetFeed, nameOnly = false) {
 }
 
 // Displays items that have been previously retrieved (could have been saved)
-function displayItems() {
-    allFeedItems.sort(function(a,b){return new Date(b[5]) - new Date(a[5])})
+function displayItems(feedItems=allFeedItems) {
+    feedItems.sort(function(a,b){return new Date(b[5]) - new Date(a[5])})
     
     const feedContainerDesktop = document.getElementById('feed-container-desktop');
     const feedContainerMobile = document.getElementById('feed-container-mobile');
     feedContainerDesktop.innerHTML = '';
     feedContainerMobile.innerHTML = '';
 
-    allFeedItems.forEach(item => {
+    feedItems.forEach(item => {
       const feedItemDesktop = createFeedItem(...item);
       const feedItemMobile = createFeedItem(...item, "../images/default_thumbnail_720p.png", true);
 
@@ -478,10 +478,10 @@ function displayItems() {
 }
 
 
-async function loadFeeds() {
+async function loadFeeds(ids = []) {
     // Display saved items
-    console.log(allFeedItems.length > 0)
-    if (allFeedItems.length > 0) {console.log("Going fast yippeee!"); displayItems()}
+    targetFeedItems = []
+    if (allFeedItems.length > 0 && ids.length == 0) {console.log("Going fast yippeee!"); displayItems(allFeedItems)}
 
     // Fetch items
     for (let i in targetFeeds) {
@@ -491,6 +491,7 @@ async function loadFeeds() {
         // Exclude pre-existing items
         items.forEach(item => {
           if (!allFeedItems.find((existingItem) => existingItem[4] == item[4])) { allFeedItems.push(item) } 
+          targetFeedItems.push(item)
         })
     }
     const textEncoder = new TextEncoder();
@@ -503,7 +504,7 @@ async function loadFeeds() {
     localStorage.feedInfos = JSON.stringify(feedInfos)
 
     // Display updated items
-    displayItems()
+    displayItems(ids.length == 0 ? allFeedItems : targetFeedItems)
 
     window.parent.postMessage({ type: 'populate-feeds-menu' }, '*') // Repopulate feeds menu with updated icons and feed item counts
     console.log("Finished reloading feeds!")
@@ -528,12 +529,13 @@ function initLoadFeeds(ids) {
       </div>
     `
     targetFeeds = loadUrls(ids = ids)  // The argument 'ids' can be used to load items with only specific ids
-    loadFeeds()
+    loadFeeds(ids = ids)
 }
 
 window.addEventListener('message', (e) => {
     if (e.data?.type === 'load-feeds') {
-      initLoadFeeds(e.data?.ids === undefined ? [] : JSON.parse(e.data?.ids))
+      console.log(e.data?.ids !== undefined && !JSON.parse(e.data?.ids).isTrusted ? JSON.parse(e.data?.ids) : [])
+      initLoadFeeds(e.data?.ids !== undefined && !JSON.parse(e.data?.ids).isTrusted ? JSON.parse(e.data?.ids) : [])
     }
 });
 
