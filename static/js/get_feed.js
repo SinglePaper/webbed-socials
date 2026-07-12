@@ -495,7 +495,10 @@ async function loadFeeds() {
     }
     const textEncoder = new TextEncoder();
     console.log("Feed items list size: ",textEncoder.encode(JSON.stringify(allFeedItems)).length);
+
     // Store info
+    allFeedItems.sort(function(a,b){return new Date(b[5]) - new Date(a[5])})
+    while (textEncoder.encode(JSON.stringify(allFeedItems)).length > 5000000) { allFeedItems.pop() }
     localStorage.allFeedItems = JSON.stringify(allFeedItems)
     localStorage.feedInfos = JSON.stringify(feedInfos)
 
