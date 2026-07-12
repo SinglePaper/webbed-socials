@@ -484,8 +484,11 @@ async function loadFeeds(ids = []) {
     if (allFeedItems.length > 0 && ids.length == 0) {console.log("Going fast yippeee!"); displayItems(allFeedItems)}
 
     // Fetch items
+    console.log(targetFeeds)
     for (let i in targetFeeds) {
         let targetFeed = targetFeeds[i]
+        if (targetFeed === undefined) continue
+        console.log(targetFeed)
         let items = await fetchRSS(targetFeed)
 
         // Exclude pre-existing items
