@@ -70,6 +70,9 @@ function populateFeedsMenu(feedList) {
 
     const title = document.createElement("div");
     title.className = "flex-grow-1";
+    title.onmouseenter = () => btn.setAttribute("data-bs-toggle", "");
+    title.onmouseleave = () => btn.setAttribute("data-bs-toggle", "collapse");
+    title.onclick = () => loadSubsetFeeds(folder.feeds.map(feed => feed.id));
     title.textContent = folder.name;
     btn.appendChild(title);
 
