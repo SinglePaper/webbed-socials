@@ -89,15 +89,19 @@ async function addYouTubeFeed() {
     const isRSS = formUrl.includes("feeds/videos.xml?")
     if (isChannel && !isRSS) {
         const channelId = await fetchChannelId(formUrl)
-        let rssUrl = `https://www.youtube.com/feeds/videos.xml?${includeShorts ? "channel_id" : "playlist_id"}=${includeShorts ? channelId : "UULF"+channelId.substring(2)}` // don't forget to consider includeShorts
-        console.log(rssUrl)
-        // Fetch URL to get feed name
+        let rssUrlShorts = `https://www.youtube.com/feeds/videos.xml?${"channel_id"}=${channelId}`
+        let rssUrlNoShorts = `https://www.youtube.com/feeds/videos.xml?${"playlist_id"}=${"UULF"+channelId.substring(2)}` 
 
-        let name = await getFeedName(rssUrl)
+        // Fetch URL to get feed name
+        let name = await getFeedName(rssUrlNoShorts)
+
         // Assemble feed
         feed = {
             name: name,
-            url: rssUrl,
+            url: includeShorts ? rssUrlShorts : rssUrlNoShorts,
+            urlShorts: rssUrlShorts,
+            urlNoShorts: rssUrlNoShorts,
+            includeShorts: includeShorts,
             id: getMaxId(feedList) + 1
         }
     } else if (!isChannel && !isRSS) {
@@ -113,7 +117,8 @@ async function addYouTubeFeed() {
         }
     } else {
         // Fetch URL to get feed name
-        let name = await getFeedName(rssUrl)
+        let name = await getFeedName(formUrl)
+        
         // Assemble feed
         feed  = {
             name: name,
@@ -122,7 +127,6 @@ async function addYouTubeFeed() {
         }
     }
     console.log("Adding YouTube")
-
 
     return addFeed(feed, targetFolder)
 }
@@ -152,17 +156,21 @@ async function addNebulaFeed() {
     const formUrl = document.querySelector(`div.nebula .url`).value;
     const nebulaPlusOnly = document.querySelector(`#checkPlus`).checked;
     const targetFolder = parseInt(document.querySelector(`#addFeedFolders`).value);
-    let rssUrl, name;
+    let rssUrl, rssUrlAll, rssUrlPlus, name;
     let isChannel = !formUrl.includes("?category=")
 
     if (isChannel) {
         let channelName = formUrl.split("nebula.tv/")[1].replace("/","")
         name = channelName
-        rssUrl = `https://rss.nebula.app/video/channels/${channelName}.rss${nebulaPlusOnly ? "?plus=true" : ""}`
+        rssUrlAll = `https://rss.nebula.app/video/channels/${channelName}.rss`
+        rssUrlPlus = `https://rss.nebula.app/video/channels/${channelName}.rss?plus=true`
+        rssUrl = nebulaPlusOnly ? rssUrlPlus: rssUrlAll
     } else {
         let categoryName = formUrl.split("videos?category=")[1].replace("/","")
         name = categoryName
-        rssUrl = `https://rss.nebula.app/video/categories/${categoryName}.rss${nebulaPlusOnly ? "?plus=true" : ""}`
+        rssUrlAll = `https://rss.nebula.app/video/categories/${categoryName}.rss}`
+        rssUrlPlus = `https://rss.nebula.app/video/categories/${categoryName}.rss?plus=true}`
+        rssUrl = nebulaPlusOnly ? rssUrlPlus: rssUrlAll
     }
 
     // Fetch URL to get feed name
@@ -173,6 +181,9 @@ async function addNebulaFeed() {
     let feed  = {
         name: name,
         url: rssUrl,
+        urlAll: rssUrlAll,
+        urlPlus: rssUrlPlus,
+        plusOnly: nebulaPlusOnly,
         id: getMaxId(feedList) + 1
     }
     console.log(feed)
