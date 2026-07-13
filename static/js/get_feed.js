@@ -510,29 +510,20 @@ async function loadFeeds(ids = []) {
     displayItems(ids.length == 0 ? allFeedItems : targetFeedItems)
 
     window.parent.postMessage({ type: 'populate-feeds-menu' }, '*') // Repopulate feeds menu with updated icons and feed item counts
+
+    document.getElementById("feedSpinner").classList.add("d-none")
+    document.getElementById("feedSpinner").classList.remove("d-flex")
+    
     console.log("Finished reloading feeds!")
 }
 
 
 function initLoadFeeds(ids) {
-    document.getElementById("feed-container-desktop").innerHTML = `
-      <div class="d-flex justify-content-center">
-        <div class="spinner-border" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    `
-    document.getElementById("feed-container-mobile").innerHTML = `
-      <div class="row">
-        <div class="d-flex justify-content-center">
-          <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </div>
-    `
-    targetFeeds = loadUrls(ids = ids)  // The argument 'ids' can be used to load items with only specific ids
-    loadFeeds(ids = ids)
+  document.getElementById("feedSpinner").classList.add("d-flex")
+  document.getElementById("feedSpinner").classList.remove("d-none")
+
+  targetFeeds = loadUrls(ids = ids)  // The argument 'ids' can be used to load items with only specific ids
+  loadFeeds(ids = ids)
 }
 
 window.addEventListener('message', (e) => {
