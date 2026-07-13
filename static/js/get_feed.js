@@ -487,15 +487,15 @@ async function loadFeeds(ids = []) {
 
     // Display saved items
     allFeedItems = allFeedItems.filter((item) => parent.getFeed(item[7]) !== null) // Filter out saved items from deleted feeds.
-    if (allFeedItems.length > 0 && ids.length == 0) {console.log("Going fast yippeee!"); displayItems(allFeedItems, currentFeedLoad)}
+    if (allFeedItems.length > 0 && ids.length == 0) {displayItems(allFeedItems, currentFeedLoad)}
 
     // Fetch items
-    console.log(targetFeeds)
+    // console.log(targetFeeds)
     for (let i in targetFeeds) {
-        if (currentFeedLoad != latestFeedLoad) {console.log("New feed load started. Cancelling..."); return}
+        if (currentFeedLoad != latestFeedLoad) { return }
         let targetFeed = targetFeeds[i]
         if (targetFeed === undefined) continue
-        console.log(targetFeed)
+        // console.log(targetFeed)
         let items = await fetchRSS(targetFeed)
 
         // Exclude pre-existing items
@@ -514,7 +514,7 @@ async function loadFeeds(ids = []) {
     localStorage.feedInfos = JSON.stringify(feedInfos)
 
     // Display updated items
-    if (currentFeedLoad != latestFeedLoad) {console.log("New feed load started. Cancelling late..."); return}
+    if (currentFeedLoad != latestFeedLoad) { return }
     displayItems(ids.length == 0 ? allFeedItems : targetFeedItems, currentFeedLoad)
 
     window.parent.postMessage({ type: 'populate-feeds-menu' }, '*') // Repopulate feeds menu with updated icons and feed item counts
@@ -536,7 +536,7 @@ function initLoadFeeds(ids) {
 
 window.addEventListener('message', (e) => {
     if (e.data?.type === 'load-feeds') {
-      console.log(e.data?.ids !== undefined && !JSON.parse(e.data?.ids).isTrusted ? JSON.parse(e.data?.ids) : [])
+      // console.log(e.data?.ids !== undefined && !JSON.parse(e.data?.ids).isTrusted ? JSON.parse(e.data?.ids) : [])
       initLoadFeeds(e.data?.ids !== undefined && !JSON.parse(e.data?.ids).isTrusted ? JSON.parse(e.data?.ids) : [])
     }
 });

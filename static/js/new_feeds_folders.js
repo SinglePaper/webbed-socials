@@ -97,6 +97,8 @@ async function addYouTubeFeed() {
 
         // Assemble feed
         feed = {
+            source: "YouTube",
+            type: "channel",
             name: name,
             url: includeShorts ? rssUrlShorts : rssUrlNoShorts,
             urlShorts: rssUrlShorts,
@@ -106,11 +108,13 @@ async function addYouTubeFeed() {
         }
     } else if (!isChannel && !isRSS) {
         let rssUrl = `https://www.youtube.com/feeds/videos.xml?playlist_id=${formUrl.split("playlist?list=")[1]}`
-        console.log(rssUrl)
+        // console.log(rssUrl)
         // Fetch URL to get feed name
         let name = await getFeedName(rssUrl)
         // Assemble feed
         feed = {
+            source: "YouTube",
+            type: "playlist",
             name: name,
             url: rssUrl,
             id: getMaxId(feedList) + 1
@@ -118,9 +122,11 @@ async function addYouTubeFeed() {
     } else {
         // Fetch URL to get feed name
         let name = await getFeedName(formUrl)
-        
+
         // Assemble feed
         feed  = {
+            source: "YouTube",
+            type: "rss",
             name: name,
             url: formUrl,
             id: getMaxId(feedList) + 1
@@ -144,6 +150,7 @@ function addDropoutFeed() {
     
     console.log("Adding Dropout")
     let feed  = {
+        source: "Other",
         name: feedTitle,
         url: rssUrl,
         id: getMaxId(feedList) + 1
@@ -179,6 +186,8 @@ async function addNebulaFeed() {
     // Assemble feed
     console.log("Adding Nebula")
     let feed  = {
+        source: "Nebula",
+        isChannel: isChannel,
         name: name,
         url: rssUrl,
         urlAll: rssUrlAll,
@@ -186,7 +195,7 @@ async function addNebulaFeed() {
         plusOnly: nebulaPlusOnly,
         id: getMaxId(feedList) + 1
     }
-    console.log(feed)
+    // console.log(feed)
     return addFeed(feed, targetFolder)
 }
 
@@ -202,6 +211,7 @@ async function addTwitchFeed() {
 
     // Assemble feed
     let feed = {
+        source: "Twitch",
         name: name,
         url: rssUrl,
         id: getMaxId(feedList) + 1 
@@ -222,6 +232,7 @@ async function addBlueskyFeed() {
 
     // Assemble feed
     let feed = {
+        source: "Bluesky",
         name: name,
         url: rssUrl,
         id: getMaxId(feedList) + 1 
@@ -241,6 +252,7 @@ async function addOtherFeed() {
 
     // Assemble feed
     let feed = {
+        source: "Other",
         name: name,
         url: rssUrl,
         id: getMaxId(feedList) + 1 
