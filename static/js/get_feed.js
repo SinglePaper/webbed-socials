@@ -4,6 +4,7 @@ let feedInfos = {}
 if (!localStorage.allFeedItems) { localStorage.allFeedItems = JSON.stringify([]) }
 let allFeedItems = JSON.parse(localStorage.allFeedItems)
 let targetFeedItems = []
+let latestFeedLoad; // This will be used to cancel loading a feed(s) overview if a new view is requested (e.g. first loading all feeds and then clicking on one specific feed.)
 
 function loadUrls(ids=[]) {
   let feedList = JSON.parse(localStorage.feedList)
@@ -479,13 +480,19 @@ function displayItems(feedItems=allFeedItems) {
 
 
 async function loadFeeds(ids = []) {
-    // Display saved items
     targetFeedItems = []
+    latestFeedLoad = new Date()
+    let currentFeedLoad = latestFeedLoad
+
+
+    // Display saved items
+    allFeedItems = allFeedItems.filter((item) => parent.getFeed(item[7]) !== null) // Filter out saved items from deleted feeds.
     if (allFeedItems.length > 0 && ids.length == 0) {console.log("Going fast yippeee!"); displayItems(allFeedItems)}
 
     // Fetch items
     console.log(targetFeeds)
     for (let i in targetFeeds) {
+        if (currentFeedLoad != latestFeedLoad) {console.log("New feed load started. Cancelling..."); return}
         let targetFeed = targetFeeds[i]
         if (targetFeed === undefined) continue
         console.log(targetFeed)
@@ -507,13 +514,14 @@ async function loadFeeds(ids = []) {
     localStorage.feedInfos = JSON.stringify(feedInfos)
 
     // Display updated items
+    if (currentFeedLoad != latestFeedLoad) {console.log("New feed load started. Cancelling..."); return}
     displayItems(ids.length == 0 ? allFeedItems : targetFeedItems)
 
     window.parent.postMessage({ type: 'populate-feeds-menu' }, '*') // Repopulate feeds menu with updated icons and feed item counts
 
     document.getElementById("feedSpinner").classList.add("d-none")
     document.getElementById("feedSpinner").classList.remove("d-flex")
-    
+
     console.log("Finished reloading feeds!")
 }
 
