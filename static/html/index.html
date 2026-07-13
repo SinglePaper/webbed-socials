@@ -189,7 +189,7 @@
           <div id="addFolderModalBody" class="modal-body">
             <form>
               <div class="form-group">
-                <!-- <label for="newFolderNameInput">Folder name</label> -->
+                <label>Folder name</label>
                 <input class="form-control" 
                   onkeyup="document.getElementById('addFolderBtn').disabled = (document.getElementById('newFolderNameInput').value.length == 0)" 
                   id="newFolderNameInput" placeholder="Folder name">
@@ -215,6 +215,7 @@
           <div id="editFolderModalBody" class="modal-body">
             <form>
               <div class="form-group">
+                <label>Folder name</label>
                 <input class="form-control" type="text"
                   onkeyup="document.getElementById('editFolderBtn').disabled = (document.getElementById('editFolderNameInput').value.length == 0)" 
                   id="editFolderNameInput" 
@@ -261,6 +262,7 @@
     <script src="../js/new_feeds_folders.js"></script>
     <script src="../js/opml.js"></script>
     <script src="../js/get_youtube.js"></script>
+    <script src="../js/updateFeedList.js"></script>
     <script>
       const frame = document.getElementById('frame');
       const colorModeBtn = document.getElementById("colorModeBtn")

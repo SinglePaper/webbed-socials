@@ -150,7 +150,7 @@ function addDropoutFeed() {
     
     console.log("Adding Dropout")
     let feed  = {
-        source: "Other",
+        source: "Dropout",
         name: feedTitle,
         url: rssUrl,
         id: getMaxId(feedList) + 1
