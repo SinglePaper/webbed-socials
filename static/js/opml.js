@@ -16,6 +16,9 @@ function handleUpload() {
 function downloadOPML () {
   console.log("Downloading OPML...")
   console.log(feedList)
+  function makeStringSafe(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
   let opmlString = `\
 <?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
@@ -27,12 +30,12 @@ function downloadOPML () {
 
   feedList.folders.forEach(folder => {
     opmlString += `\
-      <outline title="${folder.name}" text="${folder.name}">
+      <outline title="${makeStringSafe(folder.name)}" text="${makeStringSafe(folder.name)}">
     `
 
     folder.feeds.forEach(feed => {
       opmlString += `\
-        <outline title="${feed.name}" text="${feed.name}" type="rss" xmlUrl="${feed.url}" htmlUrl="${feed.url}"/>
+        <outline title="${makeStringSafe(feed.name)}" text="${makeStringSafe(feed.name)}" type="rss" xmlUrl="${feed.url}" htmlUrl="${feed.url}"/>
       `
     });
 
@@ -43,7 +46,7 @@ function downloadOPML () {
 
   feedList.root.forEach(feed => {
     opmlString += `\
-      <outline title="${feed.name}" text="${feed.name}" type="rss" xmlUrl="${feed.url}" htmlUrl="${feed.url}"/>
+      <outline title="${makeStringSafe(feed.name)}" text="${makeStringSafe(feed.name)}" type="rss" xmlUrl="${feed.url}" htmlUrl="${feed.url}"/>
     `
   });
   
@@ -52,7 +55,6 @@ function downloadOPML () {
   </body>
 </opml>
   `
-
   const blob = new Blob([opmlString], { type: "text/plain" });
   
   // Create a temporary URL for the Blob

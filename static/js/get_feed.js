@@ -461,7 +461,7 @@ async function fetchRSS(targetFeed, nameOnly = false) {
 }
 
 // Displays items that have been previously retrieved (could have been saved)
-function displayItems(feedItems=allFeedItems) {
+function displayItems(feedItems=allFeedItems, currentFeedLoad) {
     feedItems.sort(function(a,b){return new Date(b[5]) - new Date(a[5])})
     
     const feedContainerDesktop = document.getElementById('feed-container-desktop');
@@ -472,7 +472,7 @@ function displayItems(feedItems=allFeedItems) {
     feedItems.forEach(item => {
       const feedItemDesktop = createFeedItem(...item);
       const feedItemMobile = createFeedItem(...item, "../images/default_thumbnail_720p.png", true);
-
+      if (currentFeedLoad != latestFeedLoad) return
       feedContainerDesktop.insertAdjacentHTML('beforeend', feedItemDesktop);
       feedContainerMobile.insertAdjacentHTML('beforeend', feedItemMobile);
     });
@@ -487,7 +487,7 @@ async function loadFeeds(ids = []) {
 
     // Display saved items
     allFeedItems = allFeedItems.filter((item) => parent.getFeed(item[7]) !== null) // Filter out saved items from deleted feeds.
-    if (allFeedItems.length > 0 && ids.length == 0) {console.log("Going fast yippeee!"); displayItems(allFeedItems)}
+    if (allFeedItems.length > 0 && ids.length == 0) {console.log("Going fast yippeee!"); displayItems(allFeedItems, currentFeedLoad)}
 
     // Fetch items
     console.log(targetFeeds)
@@ -501,7 +501,7 @@ async function loadFeeds(ids = []) {
         // Exclude pre-existing items
         items.forEach(item => {
           if (!allFeedItems.find((existingItem) => existingItem[4] == item[4])) { allFeedItems.push(item) } 
-          targetFeedItems.push(item)
+          if (ids.length != 0) targetFeedItems.push(item)
         })
     }
     const textEncoder = new TextEncoder();
@@ -514,8 +514,8 @@ async function loadFeeds(ids = []) {
     localStorage.feedInfos = JSON.stringify(feedInfos)
 
     // Display updated items
-    if (currentFeedLoad != latestFeedLoad) {console.log("New feed load started. Cancelling..."); return}
-    displayItems(ids.length == 0 ? allFeedItems : targetFeedItems)
+    if (currentFeedLoad != latestFeedLoad) {console.log("New feed load started. Cancelling late..."); return}
+    displayItems(ids.length == 0 ? allFeedItems : targetFeedItems, currentFeedLoad)
 
     window.parent.postMessage({ type: 'populate-feeds-menu' }, '*') // Repopulate feeds menu with updated icons and feed item counts
 
