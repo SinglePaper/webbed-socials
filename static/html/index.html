@@ -124,7 +124,6 @@
                   </label>
                 </div>
                 <div class="nebula">
-                  <label class="mt-2">Type</label>
                   <label class="mt-2 url-label">Channel or Category URL</label>
                   <input class="form-control url"  
                     placeholder="https://...">
@@ -164,15 +163,46 @@
       <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
           <div class="modal-header">
-              <h1 class="modal-title fs-5" id="editFeedModalLabel">Edit Feed</h1>
+              <h1 class="modal-title fs-5" id="addFeedModalLabel">Edit Feed</h1>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div id="editFeedModalBody" class="modal-body">
-              ...
+            <form id="editFeedForm">
+              <div id="editFeedFormInputs" class="form-group">
+                <div class="all">
+                  <label class="url-label">Display Name</label>
+                  <input class="form-control name">
+                </div>
+                <div class="youtube">
+                  <input class="form-check-input youtubeShorts" type="checkbox" value="" id="editCheckShorts">
+                  <label class="form-check-label youtubeShorts" for="editCheckShorts">
+                    Include shorts
+                  </label>
+                </div>
+                <div class="nebula">
+                  <input class="form-check-input" type="checkbox" value="" id="editCheckPlus">
+                  <label class="form-check-label" for="editCheckPlus">
+                    Nebula Plus only
+                  </label>
+                </div>
+
+                <div class="all">
+                  <label class="mt-2">Folder</label>
+                  <select id="editFeedFolders" class="form-select">
+                  </select>
+                </div>
+                <label class="url-label mt-2">Feed URL</label>
+                <div class="input-group all">
+                  <input readonly class="form-control url"  
+                    placeholder="https://...">
+                  <button class="btn btn-outline-secondary" type="button" id="button-addon2">Copy</button>
+                </div>
+              </div>
+            </form>
           </div>
           <div class="modal-footer">
-              <button type="button" data-bs-dismiss="modal" onclick="deleteFeed(document.getElementById('editFeedModal').getAttribute('label'))" class="btn btn-danger">Delete</button>
-              <button type="button" data-bs-dismiss="modal" class="btn btn-primary">Save</button>
+              <button type="button" data-bs-dismiss="modal" class="btn btn-danger">Cancel</button>
+              <button disabled type="button" id="editFeedBtn" data-bs-dismiss="modal" class="btn btn-primary">Save</button>
           </div>
           </div>
       </div>
@@ -263,6 +293,7 @@
     <script src="../js/opml.js"></script>
     <script src="../js/get_youtube.js"></script>
     <script src="../js/updateFeedList.js"></script>
+    <script src="../js/editFeeds.js"></script>
     <script>
       const frame = document.getElementById('frame');
       const colorModeBtn = document.getElementById("colorModeBtn")

@@ -138,7 +138,7 @@ function populateFeedsMenu(feedList) {
       more.style.cursor = "pointer";
       more.setAttribute("data-bs-toggle", "modal");
       more.setAttribute("data-bs-target", "#editFeedModal");
-      more.onclick = () => updateFeedModal(feed.id);
+      more.onclick = () => updateEditFeedForm(feed.id);
       more.insertAdjacentHTML(
         "beforeend",
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0z"/></svg>`
@@ -196,7 +196,7 @@ function populateFeedsMenu(feedList) {
     more.style.cursor = "pointer";
     more.setAttribute("data-bs-toggle", "modal");
     more.setAttribute("data-bs-target", "#editFeedModal");
-    more.onclick = () => updateFeedModal(feed.id);
+    more.onclick = () => updateEditFeedForm(feed.id);
     more.insertAdjacentHTML(
       "beforeend",
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="1em" width="1em" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path fill="currentColor" d="M9.5 13a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0zm0-5a1.5 1.5 0 1 1-3 0z"/></svg>`
@@ -301,6 +301,17 @@ function getFolder(targetId, copy = false) {
 
   if (!folder) return null;
   return copy ? { ...folder } : folder;
+}
+
+function getFeedLocation(feedId) {
+  const rootFeed = feedList.root.find(f => f.id === feedId);
+  if (rootFeed) return -1;
+
+  const folder = feedList.folders.find(folder =>
+    folder.feeds.some(feed => feed.id === feedId)
+  );
+
+  return folder ? folder.id : null;
 }
 
 function deleteFeed(targetId) {

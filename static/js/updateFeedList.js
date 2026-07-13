@@ -1,3 +1,4 @@
+// Due to changes to how feeds are saved, older feeds need to be upgraded before use.
 function upgradeFeedList() {
 
     for (let i of [...Array(getMaxId(feedList)+1).keys()]) {
@@ -15,11 +16,17 @@ function upgradeFeedList() {
             }
         }
 
+        else if (feed.url.includes("rss.nebula.app")) { 
+            feed.source = "Nebula";
+            feed.isChannel = feed.url.includes("video/channels/")
+            feed.plusOnly = feed.url.includes("?plus=true")
+            feed.urlAll = feed.url.replace("?plus=true", "")
+            feed.urlPlus = feed.urlAll + "?plus=true"
+        }
         else if (feed.url.includes("github.io/dropout-rss/")) feed.source = "Dropout";
         else if (feed.url.includes("twitchrss.appspot.com")) feed.source = "Twitch";
         else if (feed.url.includes("bsky.app")) feed.source = "Bluesky";
         else feed.source = "Other";
-        console.log(feed)
     }
     return feedList
 }
